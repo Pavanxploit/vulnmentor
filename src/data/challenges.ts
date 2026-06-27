@@ -1,0 +1,136 @@
+export type ChallengeStatus = "available" | "planned";
+
+export type Hint = {
+  title: string;
+  body: string;
+};
+
+export type CodePair = {
+  vulnerable: string;
+  secure: string;
+};
+
+export type Challenge = {
+  id: string;
+  title: string;
+  category: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  status: ChallengeStatus;
+  time: string;
+  points: number;
+  flag: string;
+  summary: string;
+  skills: string[];
+  workflow: string[];
+  hints: Hint[];
+  logs: string[];
+  rootCause: string;
+  mitigation: string[];
+  impact: string;
+  code: CodePair;
+};
+
+export const challenges: Challenge[] = [
+  {
+    id: "web-sqli-login",
+    title: "Login Bypass With SQL Injection",
+    category: "Web Security",
+    difficulty: "Easy",
+    status: "available",
+    time: "25 min",
+    points: 100,
+    flag: "VM{sql_auth_bypass}",
+    summary:
+      "A login form trusts raw user input and builds a SQL query without parameter binding.",
+    skills: ["OWASP A03 Injection", "Authentication", "Secure SQL"],
+    workflow: ["Attack", "Root Cause", "Detection", "Defense"],
+    hints: [
+      {
+        title: "Hint 1",
+        body: "Focus on how the username and password values are combined with the database query.",
+      },
+      {
+        title: "Hint 2",
+        body: "If input is placed directly inside quoted SQL strings, a crafted value can change the query logic.",
+      },
+      {
+        title: "Hint 3",
+        body: "Try proving that the WHERE clause can be made true without knowing the original password.",
+      },
+    ],
+    logs: [
+      "10:21:43 POST /login username=student password=******** status=401",
+      "10:24:18 POST /login username=admin'-- password=demo status=401",
+      "10:26:02 POST /login username=admin' OR '1'='1 password=test status=200",
+      "10:26:03 SESSION role=admin source=lab-web-01 status=created",
+    ],
+    rootCause:
+      "The application concatenates untrusted input into a SQL statement. The database receives user text as executable query logic instead of treating it as data.",
+    mitigation: [
+      "Use prepared statements with placeholders for every user-controlled value.",
+      "Validate input length and expected format before database access.",
+      "Return generic login errors and monitor abnormal authentication patterns.",
+      "Add tests that submit SQL metacharacters to authentication endpoints.",
+    ],
+    impact:
+      "An attacker can bypass authentication, access protected data, and perform actions as another user.",
+    code: {
+      vulnerable: `const query =
+  "SELECT * FROM users WHERE username='" +
+  username +
+  "' AND password='" +
+  password +
+  "'";
+
+const user = await db.get(query);`,
+      secure: `const user = await db.get(
+  "SELECT * FROM users WHERE username = ? AND password_hash = ?",
+  [username, passwordHash]
+);`,
+    },
+  },
+  {
+    id: "web-xss-comment",
+    title: "Stored XSS In Comments",
+    category: "Web Security",
+    difficulty: "Medium",
+    status: "planned",
+    time: "35 min",
+    points: 140,
+    flag: "VM{xss_comment_lab}",
+    summary:
+      "A comment board renders stored user content without output encoding.",
+    skills: ["OWASP A03 Injection", "Output Encoding", "Browser Security"],
+    workflow: ["Attack", "Root Cause", "Detection", "Defense"],
+    hints: [],
+    logs: [],
+    rootCause: "",
+    mitigation: [],
+    impact: "",
+    code: { vulnerable: "", secure: "" },
+  },
+  {
+    id: "api-broken-auth",
+    title: "Broken API Authorization",
+    category: "API Security",
+    difficulty: "Medium",
+    status: "planned",
+    time: "40 min",
+    points: 160,
+    flag: "VM{api_auth_lab}",
+    summary:
+      "An API endpoint trusts object IDs and does not verify ownership before returning data.",
+    skills: ["OWASP API1 BOLA", "Access Control", "API Testing"],
+    workflow: ["Attack", "Root Cause", "Detection", "Defense"],
+    hints: [],
+    logs: [],
+    rootCause: "",
+    mitigation: [],
+    impact: "",
+    code: { vulnerable: "", secure: "" },
+  },
+];
+
+export const activeChallenge = challenges.find(
+  (challenge) => challenge.status === "available",
+)!;

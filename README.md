@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VulnMentor
 
-## Getting Started
+VulnMentor is an AI-guided Web and API security learning sandbox. This first build includes a Next.js learning portal and one Docker-based SQL Injection lab.
 
-First, run the development server:
+## Run The Portal
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run The First Lab
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+docker compose up --build
+```
 
-## Learn More
+Open `http://localhost:4010`.
 
-To learn more about Next.js, take a look at the following resources:
+The first demo flag is:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+VM{sql_auth_bypass}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Current Stage
 
-## Deploy on Vercel
+- Dashboard and lab selection
+- SQL Injection challenge brief
+- Progressive guided hints
+- Flag submission
+- Attack traces
+- Root-cause explanation
+- Vulnerable vs secure code comparison
+- Mitigation checklist
+- Docker sandbox for the first lab
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Next Stages
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Connect portal controls to lab health and traces
+- Add user login and progress storage
+- Add XSS and Broken API Authorization labs
+- Add admin challenge management
+- Add optional hosted AI mentor integration

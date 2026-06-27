@@ -1,0 +1,8 @@
+services:
+  sql-injection-login:
+    build:
+      context: ./labs/sql-injection-login
+    container_name: vulnmentor-sqli-lab
+    ports:
+      - "4010:4010"
+    restart: unless-stopped
