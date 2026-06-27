@@ -8,9 +8,11 @@ This repository is intentionally educational. Labs must run only in the controll
 
 - Next.js learning portal
 - Docker-based SQL Injection login lab
+- Docker-based API Broken Authorization / IDOR lab
 - Lab health check from the portal
 - Runtime trace view from the lab
 - Flag submission workflow
+- Local progress and attempt history
 - Progressive hints
 - Root-cause explanation
 - Vulnerable vs secure code comparison
@@ -27,7 +29,7 @@ VulnMentor Portal
     |
     | checks health/traces
     v
-Docker Lab on localhost:4010
+Docker Labs on 127.0.0.1:4010 and 127.0.0.1:4020
 ```
 
 For now, both the portal and the lab are designed to run locally on the learner's laptop. Later, the portal can be hosted, but the vulnerable labs should still run locally or inside a controlled cyber range/VM.
@@ -45,36 +47,40 @@ Open:
 http://localhost:3000
 ```
 
-## Run The First Lab
+## Run The Labs
 
 Install Docker Desktop, then run:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-Open the lab directly:
+Open the labs directly:
 
 ```text
-http://localhost:4010
+http://127.0.0.1:4010
+http://127.0.0.1:4020
 ```
 
-Health endpoint:
+Health endpoints:
 
 ```text
-http://localhost:4010/health
+http://127.0.0.1:4010/health
+http://127.0.0.1:4020/health
 ```
 
-Trace endpoint:
+Trace endpoints:
 
 ```text
-http://localhost:4010/traces
+http://127.0.0.1:4010/traces
+http://127.0.0.1:4020/traces
 ```
 
-The first demo flag is:
+Current demo flags:
 
 ```text
 VM{sql_auth_bypass}
+VM{api_bola_idor_mastered}
 ```
 
 ## Safe Usage Rules
@@ -110,12 +116,12 @@ npm run build
 - Frontend: Next.js, React, TypeScript
 - UI: Tailwind CSS, lucide-react icons
 - Labs: Docker Compose
-- First lab runtime: Python HTTP server with SQLite
+- Lab runtimes: Python HTTP servers, SQLite for SQLi lab, in-memory API records for BOLA lab
 
 Planned additions:
 
 - Backend persistence for users and progress
-- More Web/API labs
+- More Web/API labs such as JWT tampering, rate limit bypass, excessive data exposure, and XSS
 - AI Mentor integration with hint guardrails
 - Admin dashboard
 - Final demo and deployment guide

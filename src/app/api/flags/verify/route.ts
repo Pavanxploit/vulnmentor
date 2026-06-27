@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const flagsByChallenge = new Map<string, string>([
   ["web-sqli-login", "VM{sql_auth_bypass}"],
+  ["api-broken-auth", "VM{api_bola_idor_mastered}"],
 ]);
 
 export async function POST(request: NextRequest) {

@@ -6,3 +6,11 @@ services:
     ports:
       - "4010:4010"
     restart: unless-stopped
+
+  api-broken-auth:
+    build:
+      context: ./labs/api-broken-auth
+    container_name: vulnmentor-api-bola-lab
+    ports:
+      - "4020:4020"
+    restart: unless-stopped

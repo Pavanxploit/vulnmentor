@@ -34,6 +34,7 @@ export type Challenge = {
   mitigation: string[];
   impact: string;
   code: CodePair;
+  console?: string[];
   lab?: LabEndpoint;
 };
 
@@ -48,9 +49,9 @@ export const challenges: Challenge[] = [
     points: 100,
     verifierId: "web-sqli-login",
     lab: {
-      baseUrl: "http://localhost:4010",
-      healthUrl: "http://localhost:4010/health",
-      tracesUrl: "http://localhost:4010/traces",
+      baseUrl: "http://127.0.0.1:4010",
+      healthUrl: "http://127.0.0.1:4010/health",
+      tracesUrl: "http://127.0.0.1:4010/traces",
     },
     summary:
       "A login form trusts raw user input and builds a SQL query without parameter binding.",
@@ -86,6 +87,12 @@ export const challenges: Challenge[] = [
     ],
     impact:
       "An attacker can bypass authentication, access protected data, and perform actions as another user.",
+    console: [
+      "$ curl -i http://127.0.0.1:4010/login",
+      "HTTP/1.1 200 OK | form fields: username, password",
+      "$ submit payload through the login form",
+      "Monitor result in attack traces...",
+    ],
     code: {
       vulnerable: `const query =
   "SELECT * FROM users WHERE username='" +
@@ -126,20 +133,78 @@ const user = await db.get(query);`,
     title: "Broken API Authorization",
     category: "API Security",
     difficulty: "Medium",
-    status: "planned",
-    time: "40 min",
+    status: "available",
+    time: "35 min",
     points: 160,
     verifierId: "api-broken-auth",
+    lab: {
+      baseUrl: "http://127.0.0.1:4020",
+      healthUrl: "http://127.0.0.1:4020/health",
+      tracesUrl: "http://127.0.0.1:4020/traces",
+    },
     summary:
-      "An API endpoint trusts object IDs and does not verify ownership before returning data.",
+      "An API validates the token but forgets to verify that the requested account object belongs to the authenticated user.",
     skills: ["OWASP API1 BOLA", "Access Control", "API Testing"],
-    workflow: ["Attack", "Root Cause", "Detection", "Defense"],
-    hints: [],
-    logs: [],
-    rootCause: "",
-    mitigation: [],
-    impact: "",
-    code: { vulnerable: "", secure: "" },
+    workflow: ["Recon API", "Change Object ID", "Capture Flag", "Compare Fix"],
+    hints: [
+      {
+        title: "Hint 1",
+        body: "Start with the normal student token and inspect which account id belongs to that student.",
+      },
+      {
+        title: "Hint 2",
+        body: "The token proves who you are. The vulnerable endpoint still has to check whether the requested object belongs to you.",
+      },
+      {
+        title: "Hint 3",
+        body: "Compare the vulnerable account endpoint with the secure endpoint after changing the numeric account id.",
+      },
+    ],
+    logs: [
+      "11:04:08 GET /api/me token=student-token status=200 user=user-100",
+      "11:05:12 GET /api/accounts/1001 status=200 user=user-100 owner=user-100",
+      "11:06:44 GET /api/accounts/1002 status=200 user=user-100 owner=user-200 alert=BOLA",
+      "11:07:01 GET /secure/api/accounts/1002 status=403 user=user-100 owner=user-200",
+    ],
+    rootCause:
+      "The API authenticates the token but does not authorize access to the requested object. A valid student token can request another account id because the handler returns records by id without checking ownerId against the authenticated user.",
+    mitigation: [
+      "Check object ownership or permission before returning every object-level resource.",
+      "Derive accessible objects from the authenticated user context instead of trusting request parameters.",
+      "Return 403 for existing objects that the user is not allowed to access.",
+      "Add authorization tests that attempt cross-user object access for every sensitive endpoint.",
+      "Log owner mismatches as possible BOLA or IDOR attempts.",
+    ],
+    impact:
+      "An attacker with a normal account can read another user's records, API key metadata, internal notes, or flags by changing object identifiers.",
+    console: [
+      '$ curl "http://127.0.0.1:4020/api/me?token=student-token"',
+      '$ curl "http://127.0.0.1:4020/api/accounts/1001?token=student-token"',
+      "$ change the account id and compare /secure/api/accounts/{id}",
+      "Monitor BOLA owner mismatches in attack traces...",
+    ],
+    code: {
+      vulnerable: `const user = getUserFromToken(token);
+const account = accounts[accountId];
+
+if (!user || !account) {
+  return response.status(404).json({ error: "not_found" });
+}
+
+return response.json(account);`,
+      secure: `const user = getUserFromToken(token);
+const account = accounts[accountId];
+
+if (!user || !account) {
+  return response.status(404).json({ error: "not_found" });
+}
+
+if (account.ownerId !== user.id) {
+  return response.status(403).json({ error: "forbidden" });
+}
+
+return response.json(account);`,
+    },
   },
 ];
 

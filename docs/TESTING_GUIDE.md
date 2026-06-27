@@ -19,24 +19,25 @@ Check:
 
 - Page loads without console errors.
 - Labs appear in the sidebar.
-- SQL Injection lab opens.
+- SQL Injection and API Broken Authorization labs open.
 - Hints reveal one by one.
 - Flag form accepts input.
 - Brief, Attack, Root Cause, and Defense tabs work.
 
-## 2. Check The Docker Lab
+## 2. Check The Docker Labs
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
 Open:
 
 ```text
-http://localhost:4010
+http://127.0.0.1:4010
+http://127.0.0.1:4020
 ```
 
-Check:
+Check SQL Injection lab:
 
 - Login form loads.
 - Normal invalid login fails.
@@ -45,15 +46,25 @@ Check:
 - `/health` returns `ok`.
 - `/traces` returns recent login attempts.
 
+Check API Broken Authorization lab:
+
+- Home page loads.
+- `/api/me?token=student-token` returns the student profile.
+- `/api/accounts/1001?token=student-token` returns the student's own account.
+- Changing the account id reaches the vulnerable object access path.
+- `/secure/api/accounts/1002?token=student-token` blocks cross-user access.
+- `/health` returns `ok`.
+- `/traces` returns recent API attempts.
+
 ## 3. Check Portal To Lab Connection
 
-With both portal and Docker lab running:
+With the portal and Docker labs running:
 
-- Open `http://localhost:3000`
-- Select the SQL Injection lab.
+- Open `http://127.0.0.1:3000`
+- Select each live lab.
 - Check lab status in the portal.
 - Open the Attack tab.
-- Perform login attempts in the lab.
+- Perform attempts in the lab.
 - Refresh traces in the portal.
 
 ## 4. Check Before Committing

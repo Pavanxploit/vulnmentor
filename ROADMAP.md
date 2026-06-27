@@ -30,11 +30,12 @@ Status: in progress
 
 ## Phase 3: More Web And API Labs
 
-- [ ] IDOR / Broken Object Level Authorization
+- [x] IDOR / Broken Object Level Authorization
 - [ ] JWT tampering
 - [ ] Rate limit bypass
 - [ ] Excessive data exposure
 - [ ] Stored XSS
+- [x] Secure version comparison for API BOLA lab
 - [ ] Secure version for every vulnerable lab
 
 ## Phase 4: AI Mentor

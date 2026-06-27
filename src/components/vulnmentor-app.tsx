@@ -66,6 +66,10 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "defense", label: "Defense" },
 ];
 
+const liveLabCount = challenges.filter(
+  (challenge) => challenge.status === "available",
+).length;
+
 export function VulnMentorApp() {
   const [selectedId, setSelectedId] = useState(activeChallenge.id);
   const [tab, setTab] = useState<Tab>("brief");
@@ -419,7 +423,7 @@ function TopBar({ labRuntime }: { labRuntime: LabRuntime }) {
           tone={labRuntime.status}
         />
         <StatusPill icon={<Bot size={15} />} label="Mentor offline mode" />
-        <StatusPill icon={<Activity size={15} />} label="MVP stage 1" />
+        <StatusPill icon={<Activity size={15} />} label="Phase 3 build" />
       </div>
     </header>
   );
@@ -471,7 +475,7 @@ function Sidebar({
           Labs
         </div>
         <span className="rounded-md bg-[#e7f6f0] px-2 py-1 text-xs font-medium text-[#0f6b53]">
-          1 live
+          {liveLabCount} live
         </span>
       </div>
 
@@ -658,7 +662,7 @@ function LabRuntimeBanner({
   const helpText =
     labRuntime.status === "online"
       ? `Connected to ${challenge.lab.baseUrl}. Runtime traces can be viewed in the Attack tab.`
-      : "Start Docker with `docker compose up --build`, then refresh the lab status.";
+      : "Start Docker with `docker compose up --build -d`, then refresh the lab status.";
 
   return (
     <div className="mt-4 rounded-md border border-[#dfe1d8] bg-[#fbfbf8] p-3">
@@ -750,7 +754,7 @@ function BriefTab({ challenge }: { challenge: Challenge }) {
       )}
 
       <div className="xl:col-span-2">
-        <LabTopology />
+        <LabTopology challenge={challenge} />
       </div>
     </div>
   );
@@ -768,11 +772,11 @@ function LabStartCard({ challenge }: { challenge: Challenge }) {
       <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
         <div>
           <p className="text-sm leading-6 text-[#4d5852]">
-            Run the Docker sandbox, then open the lab in your browser. Keep the
-            target inside localhost only.
+            Run the Docker sandbox, then open the lab in your browser. Keep all
+            targets on your local machine only.
           </p>
           <pre className="mt-3 overflow-x-auto rounded-md bg-[#111412] p-3 font-mono text-sm text-[#d7ded8]">
-            <code>docker compose up --build</code>
+            <code>docker compose up --build -d</code>
           </pre>
         </div>
         <div className="grid gap-2">
@@ -821,6 +825,13 @@ function AttackTab({
 }) {
   const traceLines =
     labRuntime.traces.length > 0 ? labRuntime.traces : challenge.logs;
+  const consoleLines =
+    challenge.console ?? [
+      "$ open the local lab target",
+      "Observe request and response behavior",
+      "$ submit the captured flag in VulnMentor",
+      "Monitor result in attack traces...",
+    ];
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
@@ -831,16 +842,24 @@ function AttackTab({
             Lab Console
           </div>
           <span className="rounded-md bg-[#22352f] px-2 py-1 text-xs text-[#9ee6cf]">
-            sandbox:web-01
+            sandbox:{challenge.id}
           </span>
         </div>
         <div className="space-y-3 font-mono text-sm leading-6 text-[#d7ded8]">
-          <p>$ curl -i http://lab.local/login</p>
-          <p className="text-[#a8b2ab]">
-            HTTP/1.1 200 OK | form fields: username, password
-          </p>
-          <p>$ submit payload through login form</p>
-          <p className="text-[#e8bf73]">Monitor result in attack traces...</p>
+          {consoleLines.map((line, index) => (
+            <p
+              key={line}
+              className={
+                index % 2 === 0
+                  ? undefined
+                  : index === consoleLines.length - 1
+                    ? "text-[#e8bf73]"
+                    : "text-[#a8b2ab]"
+              }
+            >
+              {line}
+            </p>
+          ))}
         </div>
       </div>
 
@@ -1132,7 +1151,9 @@ function MentorPanel({
   );
 }
 
-function LabTopology() {
+function LabTopology({ challenge }: { challenge: Challenge }) {
+  const isApiLab = challenge.category.toLowerCase().includes("api");
+
   return (
     <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4">
       <div className="mb-4 flex items-center gap-2 font-semibold">
@@ -1142,7 +1163,11 @@ function LabTopology() {
       <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
         <TopologyNode icon={<Terminal size={20} />} title="Student" body="Browser" />
         <ChevronRight className="hidden text-[#929992] md:block" />
-        <TopologyNode icon={<Code2 size={20} />} title="Lab Web" body="Vulnerable app" />
+        <TopologyNode
+          icon={<Code2 size={20} />}
+          title={isApiLab ? "Lab API" : "Lab Web"}
+          body={isApiLab ? "Vulnerable endpoint" : "Vulnerable app"}
+        />
         <ChevronRight className="hidden text-[#929992] md:block" />
         <TopologyNode icon={<Logs size={20} />} title="Trace Store" body="Logs + flags" />
       </div>
