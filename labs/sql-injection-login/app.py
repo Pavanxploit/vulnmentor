@@ -148,6 +148,11 @@ def login_form(message=""):
 
 
 class LabHandler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_common_headers("text/plain; charset=utf-8")
+        self.end_headers()
+
     def do_GET(self):
         if self.path == "/health":
             self.respond_text("ok")
@@ -203,7 +208,7 @@ class LabHandler(BaseHTTPRequestHandler):
     def respond_html(self, body):
         encoded = body.encode("utf-8")
         self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_common_headers("text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
@@ -211,10 +216,16 @@ class LabHandler(BaseHTTPRequestHandler):
     def respond_text(self, body):
         encoded = body.encode("utf-8")
         self.send_response(200)
-        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_common_headers("text/plain; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
+
+    def send_common_headers(self, content_type):
+        self.send_header("Content-Type", content_type)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
     def log_message(self, format, *args):
         return

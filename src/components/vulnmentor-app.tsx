@@ -23,10 +23,19 @@ import {
   ShieldCheck,
   Terminal,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { activeChallenge, challenges, type Challenge } from "@/data/challenges";
 
 type Tab = "brief" | "attack" | "root" | "defense";
+type LabRuntimeStatus = "unavailable" | "checking" | "online" | "offline";
+
+type LabRuntime = {
+  status: LabRuntimeStatus;
+  traces: string[];
+  lastChecked: Date | null;
+  error: string | null;
+  refreshLab: () => void;
+};
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "brief", label: "Brief" },
@@ -52,6 +61,7 @@ export function VulnMentorApp() {
   );
 
   const isLocked = selected.status === "planned";
+  const labRuntime = useLabRuntime(selected, isLocked);
   const completion = flagState === "correct" ? 68 : hintCount > 0 ? 42 : 28;
 
   function chooseChallenge(challenge: Challenge) {
@@ -83,7 +93,7 @@ export function VulnMentorApp() {
   return (
     <main className="min-h-screen bg-[#f7f7f4] text-[#151716]">
       <div className="mx-auto flex min-h-screen w-full max-w-[1440px] flex-col">
-        <TopBar />
+        <TopBar labRuntime={labRuntime} />
         <div className="grid flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
           <Sidebar selected={selected} onSelect={chooseChallenge} />
           <Workspace
@@ -98,6 +108,7 @@ export function VulnMentorApp() {
             submitFlag={submitFlag}
             resetLab={resetLab}
             isLocked={isLocked}
+            labRuntime={labRuntime}
           />
           <MentorPanel
             challenge={selected}
@@ -111,7 +122,77 @@ export function VulnMentorApp() {
   );
 }
 
-function TopBar() {
+function useLabRuntime(challenge: Challenge, isLocked: boolean): LabRuntime {
+  const [status, setStatus] = useState<LabRuntimeStatus>(
+    challenge.lab && !isLocked ? "checking" : "unavailable",
+  );
+  const [traces, setTraces] = useState<string[]>(challenge.logs);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refreshLab = useCallback(async () => {
+    if (!challenge.lab || isLocked) {
+      setStatus("unavailable");
+      setTraces(challenge.logs);
+      setLastChecked(null);
+      setError(null);
+      return;
+    }
+
+    setStatus("checking");
+
+    try {
+      const healthResponse = await fetch(challenge.lab.healthUrl, {
+        cache: "no-store",
+      });
+
+      if (!healthResponse.ok) {
+        throw new Error(`Health check returned ${healthResponse.status}`);
+      }
+
+      const tracesResponse = await fetch(challenge.lab.tracesUrl, {
+        cache: "no-store",
+      });
+      const traceText = tracesResponse.ok ? await tracesResponse.text() : "";
+      const liveTraces = traceText
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      setStatus("online");
+      setTraces(liveTraces.length > 0 ? liveTraces : challenge.logs);
+      setLastChecked(new Date());
+      setError(null);
+    } catch (caught) {
+      const message =
+        caught instanceof Error
+          ? caught.message
+          : "Lab health check could not complete";
+      setStatus("offline");
+      setTraces(challenge.logs);
+      setLastChecked(new Date());
+      setError(message);
+    }
+  }, [challenge, isLocked]);
+
+  useEffect(() => {
+    const initialCheck = window.setTimeout(refreshLab, 0);
+
+    if (!challenge.lab || isLocked) {
+      return () => window.clearTimeout(initialCheck);
+    }
+
+    const interval = window.setInterval(refreshLab, 12000);
+    return () => {
+      window.clearTimeout(initialCheck);
+      window.clearInterval(interval);
+    };
+  }, [challenge.lab, isLocked, refreshLab]);
+
+  return { status, traces, lastChecked, error, refreshLab };
+}
+
+function TopBar({ labRuntime }: { labRuntime: LabRuntime }) {
   return (
     <header className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
@@ -126,7 +207,11 @@ function TopBar() {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <StatusPill icon={<Container size={15} />} label="Docker ready" />
+        <StatusPill
+          icon={<Container size={15} />}
+          label={labStatusLabel(labRuntime.status)}
+          tone={labRuntime.status}
+        />
         <StatusPill icon={<Bot size={15} />} label="Mentor offline mode" />
         <StatusPill icon={<Activity size={15} />} label="MVP stage 1" />
       </div>
@@ -134,9 +219,31 @@ function TopBar() {
   );
 }
 
-function StatusPill({ icon, label }: { icon: React.ReactNode; label: string }) {
+function labStatusLabel(status: LabRuntimeStatus) {
+  if (status === "online") return "Docker lab online";
+  if (status === "offline") return "Docker lab offline";
+  if (status === "checking") return "Checking lab";
+  return "Lab not connected";
+}
+
+function StatusPill({
+  icon,
+  label,
+  tone = "unavailable",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  tone?: LabRuntimeStatus;
+}) {
+  const tones = {
+    online: "border-[#b7e2cd] bg-[#effaf4] text-[#0f6b53]",
+    offline: "border-[#efcaca] bg-[#fff3f3] text-[#a03434]",
+    checking: "border-[#ead2a0] bg-[#fff8e8] text-[#755614]",
+    unavailable: "border-[#dadbd2] bg-white text-[#3e4742]",
+  };
+
   return (
-    <span className="inline-flex h-9 items-center gap-2 rounded-md border border-[#dadbd2] bg-white px-3 text-[#3e4742]">
+    <span className={`inline-flex h-9 items-center gap-2 rounded-md border px-3 ${tones[tone]}`}>
       {icon}
       {label}
     </span>
@@ -218,6 +325,7 @@ function Workspace({
   submitFlag,
   resetLab,
   isLocked,
+  labRuntime,
 }: {
   challenge: Challenge;
   tab: Tab;
@@ -230,6 +338,7 @@ function Workspace({
   submitFlag: (event: FormEvent<HTMLFormElement>) => void;
   resetLab: () => void;
   isLocked: boolean;
+  labRuntime: LabRuntime;
 }) {
   return (
     <section className="min-w-0 rounded-md border border-[#dedfd7] bg-white shadow-sm">
@@ -266,6 +375,7 @@ function Workspace({
             />
           </div>
         </div>
+        <LabRuntimeBanner challenge={challenge} labRuntime={labRuntime} />
       </div>
 
       <div className="border-b border-[#e2e3db] px-4 py-3">
@@ -296,6 +406,7 @@ function Workspace({
             {tab === "attack" && (
               <AttackTab
                 challenge={challenge}
+                labRuntime={labRuntime}
                 flagValue={flagValue}
                 setFlagValue={setFlagValue}
                 flagState={flagState}
@@ -308,6 +419,64 @@ function Workspace({
         )}
       </div>
     </section>
+  );
+}
+
+function LabRuntimeBanner({
+  challenge,
+  labRuntime,
+}: {
+  challenge: Challenge;
+  labRuntime: LabRuntime;
+}) {
+  if (!challenge.lab) {
+    return null;
+  }
+
+  const statusText = {
+    online: "Lab is online",
+    offline: "Lab is offline",
+    checking: "Checking lab",
+    unavailable: "Lab not connected",
+  }[labRuntime.status];
+
+  const helpText =
+    labRuntime.status === "online"
+      ? `Connected to ${challenge.lab.baseUrl}. Runtime traces can be viewed in the Attack tab.`
+      : "Start Docker with `docker compose up --build`, then refresh the lab status.";
+
+  return (
+    <div className="mt-4 rounded-md border border-[#dfe1d8] bg-[#fbfbf8] p-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              text={statusText}
+              tone={labRuntime.status === "online" ? "success" : labRuntime.status === "offline" ? "danger" : "warm"}
+            />
+            {labRuntime.lastChecked && (
+              <span className="text-xs text-[#69736d]">
+                Last checked {labRuntime.lastChecked.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+          <p className="mt-2 text-sm leading-5 text-[#5c6661]">{helpText}</p>
+          {labRuntime.error && (
+            <p className="mt-1 text-xs text-[#a03434]">
+              Health detail: {labRuntime.error}
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={labRuntime.refreshLab}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#cfd2c8] bg-white px-3 text-sm font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+        >
+          <RefreshCcw size={16} />
+          Refresh Lab
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -368,17 +537,22 @@ function BriefTab({ challenge }: { challenge: Challenge }) {
 
 function AttackTab({
   challenge,
+  labRuntime,
   flagValue,
   setFlagValue,
   flagState,
   submitFlag,
 }: {
   challenge: Challenge;
+  labRuntime: LabRuntime;
   flagValue: string;
   setFlagValue: (value: string) => void;
   flagState: "idle" | "correct" | "wrong";
   submitFlag: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const traceLines =
+    labRuntime.traces.length > 0 ? labRuntime.traces : challenge.logs;
+
   return (
     <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
       <div className="rounded-md border border-[#202421] bg-[#111412] p-4 text-white">
@@ -435,12 +609,27 @@ function AttackTab({
       </form>
 
       <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4 xl:col-span-2">
-        <div className="mb-3 flex items-center gap-2 font-semibold">
-          <Logs size={18} />
-          Attack Traces
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 font-semibold">
+            <Logs size={18} />
+            Attack Traces
+          </div>
+          <button
+            type="button"
+            onClick={labRuntime.refreshLab}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#cfd2c8] bg-white px-3 text-sm font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+          >
+            <RefreshCcw size={15} />
+            Refresh Traces
+          </button>
         </div>
+        <p className="mb-3 text-sm leading-5 text-[#5c6661]">
+          {labRuntime.status === "online"
+            ? "Showing traces from the running Docker lab."
+            : "Showing sample traces until the Docker lab is online."}
+        </p>
         <div className="space-y-2">
-          {challenge.logs.map((log) => (
+          {traceLines.map((log) => (
             <div
               key={log}
               className="rounded-md border border-[#dfe1d8] bg-white px-3 py-2 font-mono text-xs text-[#3d4640]"

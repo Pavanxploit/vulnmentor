@@ -10,6 +10,12 @@ export type CodePair = {
   secure: string;
 };
 
+export type LabEndpoint = {
+  baseUrl: string;
+  healthUrl: string;
+  tracesUrl: string;
+};
+
 export type Challenge = {
   id: string;
   title: string;
@@ -28,6 +34,7 @@ export type Challenge = {
   mitigation: string[];
   impact: string;
   code: CodePair;
+  lab?: LabEndpoint;
 };
 
 export const challenges: Challenge[] = [
@@ -40,6 +47,11 @@ export const challenges: Challenge[] = [
     time: "25 min",
     points: 100,
     flag: "VM{sql_auth_bypass}",
+    lab: {
+      baseUrl: "http://localhost:4010",
+      healthUrl: "http://localhost:4010/health",
+      tracesUrl: "http://localhost:4010/traces",
+    },
     summary:
       "A login form trusts raw user input and builds a SQL query without parameter binding.",
     skills: ["OWASP A03 Injection", "Authentication", "Secure SQL"],
