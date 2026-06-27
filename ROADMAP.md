@@ -20,11 +20,13 @@ Status: in progress
 ## Phase 2: Real Learning Workflow
 
 - [ ] Add user login
-- [ ] Store user progress
-- [ ] Store flag attempts
-- [ ] Add lab completion states
+- [x] Add server-side flag verification endpoint
+- [x] Store local browser progress for prototype demos
+- [x] Store local flag attempt history
+- [x] Add lab completion states
 - [ ] Add challenge filtering by category and difficulty
 - [ ] Add lab reset instructions
+- [ ] Move progress from local storage to a database after authentication is added
 
 ## Phase 3: More Web And API Labs
 

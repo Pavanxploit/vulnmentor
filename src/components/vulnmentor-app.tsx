@@ -28,6 +28,28 @@ import { activeChallenge, challenges, type Challenge } from "@/data/challenges";
 
 type Tab = "brief" | "attack" | "root" | "defense";
 type LabRuntimeStatus = "unavailable" | "checking" | "online" | "offline";
+type FlagState = "idle" | "checking" | "correct" | "wrong" | "error";
+type AttemptStatus = "correct" | "wrong" | "error";
+
+type FlagAttempt = {
+  id: string;
+  challengeId: string;
+  status: AttemptStatus;
+  flagPreview: string;
+  submittedAt: string;
+  message: string;
+};
+
+type ProgressState = {
+  completed: string[];
+  attempts: FlagAttempt[];
+};
+
+type VerifyFlagResponse = {
+  ok: boolean;
+  correct?: boolean;
+  message?: string;
+};
 
 type LabRuntime = {
   status: LabRuntimeStatus;
@@ -49,9 +71,10 @@ export function VulnMentorApp() {
   const [tab, setTab] = useState<Tab>("brief");
   const [hintCount, setHintCount] = useState(0);
   const [flagValue, setFlagValue] = useState("");
-  const [flagState, setFlagState] = useState<"idle" | "correct" | "wrong">(
-    "idle",
-  );
+  const [flagState, setFlagState] = useState<FlagState>("idle");
+  const [flagFeedback, setFlagFeedback] = useState("");
+  const { progress, recordAttempt, resetChallengeProgress } =
+    useLocalProgress();
 
   const selected = useMemo(
     () =>
@@ -62,7 +85,13 @@ export function VulnMentorApp() {
 
   const isLocked = selected.status === "planned";
   const labRuntime = useLabRuntime(selected, isLocked);
-  const completion = flagState === "correct" ? 68 : hintCount > 0 ? 42 : 28;
+  const selectedAttempts = useMemo(
+    () =>
+      progress.attempts.filter((attempt) => attempt.challengeId === selected.id),
+    [progress.attempts, selected.id],
+  );
+  const isSolved = progress.completed.includes(selected.id);
+  const completion = isSolved ? 100 : hintCount > 0 ? 48 : 28;
 
   function chooseChallenge(challenge: Challenge) {
     setSelectedId(challenge.id);
@@ -70,6 +99,7 @@ export function VulnMentorApp() {
     setHintCount(0);
     setFlagValue("");
     setFlagState("idle");
+    setFlagFeedback("");
   }
 
   function revealHint() {
@@ -81,13 +111,72 @@ export function VulnMentorApp() {
     setHintCount(0);
     setFlagValue("");
     setFlagState("idle");
+    setFlagFeedback("");
     setTab("brief");
   }
 
-  function submitFlag(event: FormEvent<HTMLFormElement>) {
+  async function submitFlag(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isLocked) return;
-    setFlagState(flagValue.trim() === selected.flag ? "correct" : "wrong");
+
+    const submittedFlag = flagValue.trim();
+    if (!submittedFlag) {
+      setFlagState("wrong");
+      setFlagFeedback("Enter the captured flag before submitting.");
+      return;
+    }
+
+    setFlagState("checking");
+    setFlagFeedback("Checking flag with VulnMentor verifier...");
+
+    try {
+      const response = await fetch("/api/flags/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: selected.verifierId,
+          flag: submittedFlag,
+        }),
+      });
+      const result = (await response.json()) as VerifyFlagResponse;
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message ?? "Flag verifier rejected the request.");
+      }
+
+      const nextState: FlagState = result.correct ? "correct" : "wrong";
+      const message =
+        result.message ??
+        (result.correct
+          ? "Flag accepted. Lab marked as solved."
+          : "Flag mismatch. Review the lab behavior and try again.");
+
+      setFlagState(nextState);
+      setFlagFeedback(message);
+      recordAttempt({
+        challengeId: selected.id,
+        status: result.correct ? "correct" : "wrong",
+        flagPreview: previewFlag(submittedFlag),
+        message,
+      });
+
+      if (result.correct) {
+        setFlagValue("");
+      }
+    } catch (caught) {
+      const message =
+        caught instanceof Error
+          ? caught.message
+          : "Flag verifier could not complete.";
+      setFlagState("error");
+      setFlagFeedback(message);
+      recordAttempt({
+        challengeId: selected.id,
+        status: "error",
+        flagPreview: previewFlag(submittedFlag),
+        message,
+      });
+    }
   }
 
   return (
@@ -105,21 +194,138 @@ export function VulnMentorApp() {
             flagValue={flagValue}
             setFlagValue={setFlagValue}
             flagState={flagState}
+            flagFeedback={flagFeedback}
             submitFlag={submitFlag}
             resetLab={resetLab}
             isLocked={isLocked}
             labRuntime={labRuntime}
+            isSolved={isSolved}
+            attempts={selectedAttempts}
           />
           <MentorPanel
             challenge={selected}
             hintCount={hintCount}
             completion={completion}
             isLocked={isLocked}
+            isSolved={isSolved}
+            attempts={selectedAttempts}
+            resetProgress={() => {
+              resetChallengeProgress(selected.id);
+              setFlagState("idle");
+              setFlagFeedback("");
+            }}
           />
         </div>
       </div>
     </main>
   );
+}
+
+const progressStorageKey = "vulnmentor-progress-v1";
+const emptyProgress: ProgressState = { completed: [], attempts: [] };
+
+function useLocalProgress() {
+  const [progress, setProgress] = useState<ProgressState>(emptyProgress);
+
+  useEffect(() => {
+    const loadProgress = window.setTimeout(() => {
+      setProgress(readStoredProgress());
+    }, 0);
+
+    return () => window.clearTimeout(loadProgress);
+  }, []);
+
+  const recordAttempt = useCallback(
+    ({
+      challengeId,
+      status,
+      flagPreview,
+      message,
+    }: {
+      challengeId: string;
+      status: AttemptStatus;
+      flagPreview: string;
+      message: string;
+    }) => {
+      setProgress((current) => {
+        const completed =
+          status === "correct" && !current.completed.includes(challengeId)
+            ? [...current.completed, challengeId]
+            : current.completed;
+
+        const nextProgress = {
+          completed,
+          attempts: [
+            {
+              id: createAttemptId(),
+              challengeId,
+              status,
+              flagPreview,
+              message,
+              submittedAt: new Date().toISOString(),
+            },
+            ...current.attempts,
+          ].slice(0, 30),
+        };
+
+        window.localStorage.setItem(
+          progressStorageKey,
+          JSON.stringify(nextProgress),
+        );
+
+        return nextProgress;
+      });
+    },
+    [],
+  );
+
+  const resetChallengeProgress = useCallback((challengeId: string) => {
+    setProgress((current) => {
+      const nextProgress = {
+        completed: current.completed.filter((id) => id !== challengeId),
+        attempts: current.attempts.filter(
+          (attempt) => attempt.challengeId !== challengeId,
+        ),
+      };
+
+      window.localStorage.setItem(
+        progressStorageKey,
+        JSON.stringify(nextProgress),
+      );
+
+      return nextProgress;
+    });
+  }, []);
+
+  return { progress, recordAttempt, resetChallengeProgress };
+}
+
+function readStoredProgress(): ProgressState {
+  try {
+    const raw = window.localStorage.getItem(progressStorageKey);
+    if (!raw) return emptyProgress;
+
+    const parsed = JSON.parse(raw) as ProgressState;
+    return {
+      completed: Array.isArray(parsed.completed) ? parsed.completed : [],
+      attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
+    };
+  } catch {
+    return emptyProgress;
+  }
+}
+
+function createAttemptId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function previewFlag(flag: string) {
+  if (flag.length <= 8) return "***";
+  return `${flag.slice(0, 3)}...${flag.slice(-2)}`;
 }
 
 function useLabRuntime(challenge: Challenge, isLocked: boolean): LabRuntime {
@@ -322,10 +528,13 @@ function Workspace({
   flagValue,
   setFlagValue,
   flagState,
+  flagFeedback,
   submitFlag,
   resetLab,
   isLocked,
   labRuntime,
+  isSolved,
+  attempts,
 }: {
   challenge: Challenge;
   tab: Tab;
@@ -334,11 +543,14 @@ function Workspace({
   revealHint: () => void;
   flagValue: string;
   setFlagValue: (value: string) => void;
-  flagState: "idle" | "correct" | "wrong";
+  flagState: FlagState;
+  flagFeedback: string;
   submitFlag: (event: FormEvent<HTMLFormElement>) => void;
   resetLab: () => void;
   isLocked: boolean;
   labRuntime: LabRuntime;
+  isSolved: boolean;
+  attempts: FlagAttempt[];
 }) {
   return (
     <section className="min-w-0 rounded-md border border-[#dedfd7] bg-white shadow-sm">
@@ -410,7 +622,10 @@ function Workspace({
                 flagValue={flagValue}
                 setFlagValue={setFlagValue}
                 flagState={flagState}
+                flagFeedback={flagFeedback}
                 submitFlag={submitFlag}
+                isSolved={isSolved}
+                attempts={attempts}
               />
             )}
             {tab === "root" && <RootCauseTab challenge={challenge} />}
@@ -528,8 +743,56 @@ function BriefTab({ challenge }: { challenge: Challenge }) {
         </div>
       </div>
 
+      {challenge.lab && (
+        <div className="xl:col-span-2">
+          <LabStartCard challenge={challenge} />
+        </div>
+      )}
+
       <div className="xl:col-span-2">
         <LabTopology />
+      </div>
+    </div>
+  );
+}
+
+function LabStartCard({ challenge }: { challenge: Challenge }) {
+  if (!challenge.lab) return null;
+
+  return (
+    <div className="rounded-md border border-[#d7e3ef] bg-[#f6fbff] p-4">
+      <div className="mb-3 flex items-center gap-2 font-semibold">
+        <Play size={18} />
+        Start This Lab
+      </div>
+      <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
+        <div>
+          <p className="text-sm leading-6 text-[#4d5852]">
+            Run the Docker sandbox, then open the lab in your browser. Keep the
+            target inside localhost only.
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-md bg-[#111412] p-3 font-mono text-sm text-[#d7ded8]">
+            <code>docker compose up --build</code>
+          </pre>
+        </div>
+        <div className="grid gap-2">
+          <a
+            href={challenge.lab.baseUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-[#151716] px-3 text-sm font-semibold text-white transition hover:bg-[#29302b]"
+          >
+            Open Lab
+          </a>
+          <a
+            href={challenge.lab.tracesUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-[#cfd2c8] bg-white px-3 text-sm font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+          >
+            View Traces
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -541,14 +804,20 @@ function AttackTab({
   flagValue,
   setFlagValue,
   flagState,
+  flagFeedback,
   submitFlag,
+  isSolved,
+  attempts,
 }: {
   challenge: Challenge;
   labRuntime: LabRuntime;
   flagValue: string;
   setFlagValue: (value: string) => void;
-  flagState: "idle" | "correct" | "wrong";
+  flagState: FlagState;
+  flagFeedback: string;
   submitFlag: (event: FormEvent<HTMLFormElement>) => void;
+  isSolved: boolean;
+  attempts: FlagAttempt[];
 }) {
   const traceLines =
     labRuntime.traces.length > 0 ? labRuntime.traces : challenge.logs;
@@ -591,22 +860,35 @@ function AttackTab({
         />
         <button
           type="submit"
+          disabled={flagState === "checking"}
           className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#151716] px-3 text-sm font-semibold text-white transition hover:bg-[#29302b]"
         >
           <KeyRound size={17} />
-          Submit Flag
+          {flagState === "checking" ? "Checking..." : "Submit Flag"}
         </button>
+        {isSolved && flagState !== "correct" && (
+          <p className="mt-3 rounded-md border border-[#b7e2cd] bg-[#eefaf4] px-3 py-2 text-sm font-medium text-[#0f6b53]">
+            Completed locally. Your progress is saved in this browser.
+          </p>
+        )}
         {flagState === "correct" && (
           <p className="mt-3 rounded-md border border-[#b7e2cd] bg-[#eefaf4] px-3 py-2 text-sm font-medium text-[#0f6b53]">
-            Correct. The lab is marked as exploited.
+            {flagFeedback}
           </p>
         )}
         {flagState === "wrong" && (
           <p className="mt-3 rounded-md border border-[#f1b8b8] bg-[#fff2f2] px-3 py-2 text-sm font-medium text-[#ad2f2f]">
-            Flag mismatch. Review the query behavior and try again.
+            {flagFeedback}
+          </p>
+        )}
+        {flagState === "error" && (
+          <p className="mt-3 rounded-md border border-[#ead2a0] bg-[#fff8e8] px-3 py-2 text-sm font-medium text-[#755614]">
+            {flagFeedback}
           </p>
         )}
       </form>
+
+      <AttemptHistory attempts={attempts} />
 
       <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4 xl:col-span-2">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -639,6 +921,54 @@ function AttackTab({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function AttemptHistory({ attempts }: { attempts: FlagAttempt[] }) {
+  return (
+    <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4">
+      <div className="mb-3 flex items-center gap-2 font-semibold">
+        <Activity size={18} />
+        Local Attempts
+      </div>
+      {attempts.length === 0 ? (
+        <p className="text-sm leading-6 text-[#5c6661]">
+          No attempts yet. Submit a captured flag to create local progress
+          history.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {attempts.slice(0, 5).map((attempt) => (
+            <div
+              key={attempt.id}
+              className="rounded-md border border-[#dfe1d8] bg-white px-3 py-2"
+            >
+              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <Badge
+                  text={attempt.status}
+                  tone={
+                    attempt.status === "correct"
+                      ? "success"
+                      : attempt.status === "wrong"
+                        ? "danger"
+                        : "warm"
+                  }
+                />
+                <span className="text-xs text-[#69736d]">
+                  {new Date(attempt.submittedAt).toLocaleTimeString()}
+                </span>
+              </div>
+              <p className="font-mono text-xs text-[#3d4640]">
+                {attempt.flagPreview}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-[#5c6661]">
+                {attempt.message}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -707,11 +1037,17 @@ function MentorPanel({
   hintCount,
   completion,
   isLocked,
+  isSolved,
+  attempts,
+  resetProgress,
 }: {
   challenge: Challenge;
   hintCount: number;
   completion: number;
   isLocked: boolean;
+  isSolved: boolean;
+  attempts: FlagAttempt[];
+  resetProgress: () => void;
 }) {
   return (
     <aside className="rounded-md border border-[#dedfd7] bg-white p-4 shadow-sm">
@@ -736,6 +1072,25 @@ function MentorPanel({
             style={{ width: `${completion}%` }}
           />
         </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+          <div className="rounded-md border border-[#dfe1d8] bg-white p-2">
+            <p className="font-semibold">{isSolved ? "Solved" : "In progress"}</p>
+            <p className="mt-1 text-[#69736d]">Status</p>
+          </div>
+          <div className="rounded-md border border-[#dfe1d8] bg-white p-2">
+            <p className="font-semibold">{attempts.length}</p>
+            <p className="mt-1 text-[#69736d]">Attempts</p>
+          </div>
+        </div>
+        {attempts.length > 0 && (
+          <button
+            type="button"
+            onClick={resetProgress}
+            className="mt-3 h-9 w-full rounded-md border border-[#cfd2c8] bg-white px-3 text-xs font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+          >
+            Reset Local Progress
+          </button>
+        )}
       </div>
 
       {isLocked ? (

@@ -24,7 +24,7 @@ export type Challenge = {
   status: ChallengeStatus;
   time: string;
   points: number;
-  flag: string;
+  verifierId: string;
   summary: string;
   skills: string[];
   workflow: string[];
@@ -46,7 +46,7 @@ export const challenges: Challenge[] = [
     status: "available",
     time: "25 min",
     points: 100,
-    flag: "VM{sql_auth_bypass}",
+    verifierId: "web-sqli-login",
     lab: {
       baseUrl: "http://localhost:4010",
       healthUrl: "http://localhost:4010/health",
@@ -109,7 +109,7 @@ const user = await db.get(query);`,
     status: "planned",
     time: "35 min",
     points: 140,
-    flag: "VM{xss_comment_lab}",
+    verifierId: "web-xss-comment",
     summary:
       "A comment board renders stored user content without output encoding.",
     skills: ["OWASP A03 Injection", "Output Encoding", "Browser Security"],
@@ -129,7 +129,7 @@ const user = await db.get(query);`,
     status: "planned",
     time: "40 min",
     points: 160,
-    flag: "VM{api_auth_lab}",
+    verifierId: "api-broken-auth",
     summary:
       "An API endpoint trusts object IDs and does not verify ownership before returning data.",
     skills: ["OWASP API1 BOLA", "Access Control", "API Testing"],
