@@ -31,6 +31,7 @@ This starts:
 ```text
 SQL Injection lab: http://127.0.0.1:4010
 API BOLA / IDOR lab: http://127.0.0.1:4020
+API JWT tampering lab: http://127.0.0.1:4030
 ```
 
 Check health:
@@ -38,6 +39,7 @@ Check health:
 ```bash
 curl http://127.0.0.1:4010/health
 curl http://127.0.0.1:4020/health
+curl http://127.0.0.1:4030/health
 ```
 
 Both should return:

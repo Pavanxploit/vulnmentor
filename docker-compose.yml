@@ -14,3 +14,11 @@ services:
     ports:
       - "4020:4020"
     restart: unless-stopped
+
+  api-jwt-tampering:
+    build:
+      context: ./labs/api-jwt-tampering
+    container_name: vulnmentor-api-jwt-lab
+    ports:
+      - "4030:4030"
+    restart: unless-stopped

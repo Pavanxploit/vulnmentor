@@ -19,7 +19,7 @@ Check:
 
 - Page loads without console errors.
 - Labs appear in the sidebar.
-- SQL Injection and API Broken Authorization labs open.
+- SQL Injection, API Broken Authorization, and JWT Tampering labs open.
 - Hints reveal one by one.
 - Flag form accepts input.
 - Brief, Attack, Root Cause, and Defense tabs work.
@@ -35,6 +35,7 @@ Open:
 ```text
 http://127.0.0.1:4010
 http://127.0.0.1:4020
+http://127.0.0.1:4030
 ```
 
 Check SQL Injection lab:
@@ -55,6 +56,16 @@ Check API Broken Authorization lab:
 - `/secure/api/accounts/1002?token=student-token` blocks cross-user access.
 - `/health` returns `ok`.
 - `/traces` returns recent API attempts.
+
+Check API JWT Tampering lab:
+
+- Home page loads.
+- `/api/token/student` returns a student token.
+- `/api/debug/decode?token=<token>` shows the token header and payload.
+- Vulnerable admin report endpoint trusts tampered claims.
+- Secure admin report endpoint rejects unsigned or tampered tokens.
+- `/health` returns `ok`.
+- `/traces` returns recent JWT attempts.
 
 ## 3. Check Portal To Lab Connection
 

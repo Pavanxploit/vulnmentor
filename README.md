@@ -9,6 +9,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Next.js learning portal
 - Docker-based SQL Injection login lab
 - Docker-based API Broken Authorization / IDOR lab
+- Docker-based API JWT tampering lab
 - Lab health check from the portal
 - Runtime trace view from the lab
 - Flag submission workflow
@@ -29,7 +30,7 @@ VulnMentor Portal
     |
     | checks health/traces
     v
-Docker Labs on 127.0.0.1:4010 and 127.0.0.1:4020
+Docker Labs on 127.0.0.1:4010, 127.0.0.1:4020, and 127.0.0.1:4030
 ```
 
 For now, both the portal and the lab are designed to run locally on the learner's laptop. Later, the portal can be hosted, but the vulnerable labs should still run locally or inside a controlled cyber range/VM.
@@ -60,6 +61,7 @@ Open the labs directly:
 ```text
 http://127.0.0.1:4010
 http://127.0.0.1:4020
+http://127.0.0.1:4030
 ```
 
 Health endpoints:
@@ -67,6 +69,7 @@ Health endpoints:
 ```text
 http://127.0.0.1:4010/health
 http://127.0.0.1:4020/health
+http://127.0.0.1:4030/health
 ```
 
 Trace endpoints:
@@ -74,6 +77,7 @@ Trace endpoints:
 ```text
 http://127.0.0.1:4010/traces
 http://127.0.0.1:4020/traces
+http://127.0.0.1:4030/traces
 ```
 
 Current demo flags:
@@ -81,6 +85,7 @@ Current demo flags:
 ```text
 VM{sql_auth_bypass}
 VM{api_bola_idor_mastered}
+VM{jwt_claims_need_verification}
 ```
 
 ## Safe Usage Rules
@@ -117,12 +122,12 @@ npm run build
 - Frontend: Next.js, React, TypeScript
 - UI: Tailwind CSS, lucide-react icons
 - Labs: Docker Compose
-- Lab runtimes: Python HTTP servers, SQLite for SQLi lab, in-memory API records for BOLA lab
+- Lab runtimes: Python HTTP servers, SQLite for SQLi lab, in-memory API records for API labs
 
 Planned additions:
 
 - Backend persistence for users and progress
-- More Web/API labs such as JWT tampering, rate limit bypass, excessive data exposure, and XSS
+- More Web/API labs such as rate limit bypass, excessive data exposure, and XSS
 - AI Mentor integration with hint guardrails
 - Admin dashboard
 - Final demo and deployment guide

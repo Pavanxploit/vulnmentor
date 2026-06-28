@@ -206,6 +206,81 @@ if (account.ownerId !== user.id) {
 return response.json(account);`,
     },
   },
+  {
+    id: "api-jwt-tampering",
+    title: "JWT Role Tampering",
+    category: "API Security",
+    difficulty: "Medium",
+    status: "available",
+    time: "35 min",
+    points: 170,
+    verifierId: "api-jwt-tampering",
+    lab: {
+      baseUrl: "http://127.0.0.1:4030",
+      healthUrl: "http://127.0.0.1:4030/health",
+      tracesUrl: "http://127.0.0.1:4030/traces",
+    },
+    summary:
+      "An API decodes JWT claims and trusts the role field without enforcing signature and algorithm verification.",
+    skills: ["OWASP API2 Broken Authentication", "JWT", "Access Control"],
+    workflow: ["Inspect Token", "Tamper Claims", "Compare Verification", "Capture Flag"],
+    hints: [
+      {
+        title: "Hint 1",
+        body: "Start by decoding the student token and observing which claim controls authorization.",
+      },
+      {
+        title: "Hint 2",
+        body: "The vulnerable endpoint reads token claims. Ask whether it proves that those claims were signed by the server.",
+      },
+      {
+        title: "Hint 3",
+        body: "Compare the vulnerable admin endpoint with the secure endpoint after changing the role claim.",
+      },
+    ],
+    logs: [
+      "12:11:22 GET /api/token/student status=200 role=student",
+      "12:12:04 GET /api/debug/decode status=200 role=student",
+      "12:14:18 GET /api/admin/report status=200 role=admin alg=none",
+      "12:14:31 GET /secure/api/admin/report status=401 error=unexpected_jwt_algorithm",
+    ],
+    rootCause:
+      "The vulnerable endpoint decodes token header and payload data, then trusts the role claim without validating the signature or enforcing the expected JWT algorithm. A token is only trustworthy after the server verifies that it was signed by a trusted issuer.",
+    mitigation: [
+      "Verify JWT signatures before trusting any claim.",
+      "Enforce a strict allowlist of algorithms such as HS256 or RS256 instead of trusting the token header.",
+      "Reject unsigned tokens and tokens with unexpected algorithms.",
+      "Keep authorization decisions on the server side and validate role changes against server-owned data.",
+      "Add tests for tampered payloads, empty signatures, and algorithm-confusion cases.",
+    ],
+    impact:
+      "An attacker can change claims such as role or user id and access admin-only API responses if the backend trusts unverified JWT contents.",
+    console: [
+      '$ curl "http://127.0.0.1:4030/api/token/student"',
+      '$ curl "http://127.0.0.1:4030/api/debug/decode?token=<token>"',
+      "$ compare vulnerable and secure admin report endpoints",
+      "Monitor JWT verification failures in attack traces...",
+    ],
+    code: {
+      vulnerable: `const payload = decodeJwtWithoutVerification(token);
+
+if (payload.role !== "admin") {
+  return response.status(403).json({ error: "forbidden" });
+}
+
+return response.json(adminReport);`,
+      secure: `const payload = verifyJwt(token, {
+  algorithms: ["HS256"],
+  secret: process.env.JWT_SECRET,
+});
+
+if (payload.role !== "admin") {
+  return response.status(403).json({ error: "forbidden" });
+}
+
+return response.json(adminReport);`,
+    },
+  },
 ];
 
 export const activeChallenge = challenges.find(

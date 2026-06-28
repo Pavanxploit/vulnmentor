@@ -31,7 +31,7 @@ Status: in progress
 ## Phase 3: More Web And API Labs
 
 - [x] IDOR / Broken Object Level Authorization
-- [ ] JWT tampering
+- [x] JWT tampering
 - [ ] Rate limit bypass
 - [ ] Excessive data exposure
 - [ ] Stored XSS

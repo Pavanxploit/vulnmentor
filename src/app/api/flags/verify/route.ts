@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const flagsByChallenge = new Map<string, string>([
   ["web-sqli-login", "VM{sql_auth_bypass}"],
   ["api-broken-auth", "VM{api_bola_idor_mastered}"],
+  ["api-jwt-tampering", "VM{jwt_claims_need_verification}"],
 ]);
 
 export async function POST(request: NextRequest) {
