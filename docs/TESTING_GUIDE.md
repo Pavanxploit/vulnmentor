@@ -19,7 +19,7 @@ Check:
 
 - Page loads without console errors.
 - Labs appear in the sidebar.
-- SQL Injection, API Broken Authorization, and JWT Tampering labs open.
+- SQL Injection, API Broken Authorization, JWT Tampering, and Rate Limit Bypass labs open.
 - Hints reveal one by one.
 - Flag form accepts input.
 - Brief, Attack, Root Cause, and Defense tabs work.
@@ -36,6 +36,7 @@ Open:
 http://127.0.0.1:4010
 http://127.0.0.1:4020
 http://127.0.0.1:4030
+http://127.0.0.1:4040
 ```
 
 Check SQL Injection lab:
@@ -66,6 +67,16 @@ Check API JWT Tampering lab:
 - Secure admin report endpoint rejects unsigned or tampered tokens.
 - `/health` returns `ok`.
 - `/traces` returns recent JWT attempts.
+
+Check API Rate Limit Bypass lab:
+
+- Home page loads.
+- `/api/otp/start` returns a local OTP challenge.
+- Wrong OTP attempts reduce the remaining counter.
+- Spoofing `X-Forwarded-For` changes the vulnerable rate-limit key.
+- Secure OTP endpoint keeps the limit tied to the protected account.
+- `/health` returns `ok`.
+- `/traces` returns recent OTP attempts.
 
 ## 3. Check Portal To Lab Connection
 

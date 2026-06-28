@@ -32,6 +32,7 @@ This starts:
 SQL Injection lab: http://127.0.0.1:4010
 API BOLA / IDOR lab: http://127.0.0.1:4020
 API JWT tampering lab: http://127.0.0.1:4030
+API Rate Limit Bypass lab: http://127.0.0.1:4040
 ```
 
 Check health:
@@ -40,9 +41,10 @@ Check health:
 curl http://127.0.0.1:4010/health
 curl http://127.0.0.1:4020/health
 curl http://127.0.0.1:4030/health
+curl http://127.0.0.1:4040/health
 ```
 
-Both should return:
+All should return:
 
 ```text
 ok

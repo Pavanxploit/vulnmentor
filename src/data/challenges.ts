@@ -281,6 +281,84 @@ if (payload.role !== "admin") {
 return response.json(adminReport);`,
     },
   },
+  {
+    id: "api-rate-limit-bypass",
+    title: "OTP Rate Limit Bypass",
+    category: "API Security",
+    difficulty: "Medium",
+    status: "available",
+    time: "35 min",
+    points: 180,
+    verifierId: "api-rate-limit-bypass",
+    lab: {
+      baseUrl: "http://127.0.0.1:4040",
+      healthUrl: "http://127.0.0.1:4040/health",
+      tracesUrl: "http://127.0.0.1:4040/traces",
+    },
+    summary:
+      "A password-reset API rate-limits OTP attempts using a spoofable client key instead of a stable account or session key.",
+    skills: [
+      "OWASP API4 Resource Consumption",
+      "Rate Limiting",
+      "Authentication Abuse",
+    ],
+    workflow: ["Start OTP Flow", "Trigger Limit", "Bypass Key", "Compare Fix"],
+    hints: [
+      {
+        title: "Hint 1",
+        body: "Start by sending incorrect OTP attempts and observe what value the API uses as the rate-limit key.",
+      },
+      {
+        title: "Hint 2",
+        body: "If a limit is tied to a value the client can influence, the client may be able to reset the counter.",
+      },
+      {
+        title: "Hint 3",
+        body: "Compare the vulnerable endpoint with the secure endpoint. The secure endpoint ignores spoofed network metadata and limits by account.",
+      },
+    ],
+    logs: [
+      "13:05:10 GET /api/otp/start status=200 account=student@example.test",
+      "13:06:02 GET /api/otp/verify status=401 key=127.0.0.1 remaining=2",
+      "13:06:45 GET /api/otp/verify status=401 key=10.10.10.10 remaining=2",
+      "13:07:22 GET /secure/api/otp/verify status=429 key=student@example.test",
+    ],
+    rootCause:
+      "The vulnerable endpoint trusts client-controlled network metadata as the rate-limit key. An attacker can change that key between requests, causing the API to create fresh counters instead of enforcing a stable limit for the protected account or reset flow.",
+    mitigation: [
+      "Rate-limit sensitive actions by stable server-side keys such as account id, session id, reset flow id, or verified user id.",
+      "Do not trust X-Forwarded-For or similar headers unless they are set by a trusted reverse proxy.",
+      "Apply rate limits at multiple layers: account, IP, device, endpoint, and global service level.",
+      "Return generic OTP errors and log high-volume failed attempts.",
+      "Add tests that spoof headers and confirm the limit still applies to the same protected account.",
+    ],
+    impact:
+      "An attacker can keep guessing OTP or reset codes beyond the intended limit, increasing the chance of account takeover or resource exhaustion.",
+    console: [
+      '$ curl "http://127.0.0.1:4040/api/otp/start"',
+      '$ curl "http://127.0.0.1:4040/api/otp/verify?code=000000"',
+      "$ repeat with changed X-Forwarded-For and compare the secure endpoint",
+      "Monitor spoofed rate-limit keys in attack traces...",
+    ],
+    code: {
+      vulnerable: `const limitKey =
+  request.headers["x-forwarded-for"] ?? request.ip;
+
+if (tooManyAttempts(limitKey)) {
+  return response.status(429).json({ error: "rate_limited" });
+}
+
+return verifyOtp(code);`,
+      secure: `const flow = getResetFlow(request.session.flowId);
+const limitKey = flow.accountId;
+
+if (tooManyAttempts(limitKey)) {
+  return response.status(429).json({ error: "rate_limited" });
+}
+
+return verifyOtp(code);`,
+    },
+  },
 ];
 
 export const activeChallenge = challenges.find(

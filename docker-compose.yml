@@ -22,3 +22,11 @@ services:
     ports:
       - "4030:4030"
     restart: unless-stopped
+
+  api-rate-limit-bypass:
+    build:
+      context: ./labs/api-rate-limit-bypass
+    container_name: vulnmentor-api-rate-limit-lab
+    ports:
+      - "4040:4040"
+    restart: unless-stopped
