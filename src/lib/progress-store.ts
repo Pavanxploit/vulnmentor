@@ -239,9 +239,8 @@ async function verifyPassword(password: string, storedHash: string) {
 
 function resolveRegistrationRole(database: ProgressDatabase, input: RegisterInput): UserRole {
   const existingUserCount = Object.keys(database.users).length;
-  if (existingUserCount === 0) return "instructor";
-
   if (input.role !== "instructor") return "student";
+  if (existingUserCount === 0) return "instructor";
 
   const configuredCode = process.env.VULNMENTOR_INSTRUCTOR_CODE;
   const localDevInstructor =

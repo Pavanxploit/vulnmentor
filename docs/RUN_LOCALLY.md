@@ -103,7 +103,7 @@ docker compose down
 docker compose up --build -d
 ```
 
-Account progress is stored in `.data/vulnmentor-progress.json`. The first account created in a fresh local database becomes an instructor account.
+Account progress is stored in `.data/vulnmentor-progress.json`. Public registration creates student accounts. Instructor accounts should be created only through the protected setup/API flow with `role: "instructor"` and `VULNMENTOR_INSTRUCTOR_CODE`.
 
 ## 7. Stop Everything
 

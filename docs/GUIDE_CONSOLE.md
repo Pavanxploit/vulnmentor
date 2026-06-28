@@ -59,7 +59,7 @@ Before presenting or adding a new lab:
 
 ## Access
 
-The first account registered in a fresh local `.data` database becomes an instructor. Later instructor accounts require `VULNMENTOR_INSTRUCTOR_CODE`.
+Public registration creates student accounts. Instructor access should be created only through the protected setup/API flow by sending `role: "instructor"` with `VULNMENTOR_INSTRUCTOR_CODE`. Local `.test` instructor accounts are allowed outside production for screenshot and demo automation.
 
 ## Current Scope
 

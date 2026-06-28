@@ -57,7 +57,7 @@ export function DashboardPage() {
               <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Welcome back to VulnMentor</h1>
               <p className="mt-2 max-w-3xl break-words text-sm leading-6 text-slate-300">
                 {student
-                  ? `${student.name}${student.usn ? ` (${student.usn})` : ""}, your progress is now tied to your account.`
+                  ? `${student.name}, your progress is now tied to your account.`
                   : "Continue your Web and API security path, monitor local lab status, and keep your project progress in one place."}
               </p>
             </div>
@@ -222,7 +222,7 @@ function StudentAccessPanel({
   authMessage: string;
   logoutStudent: () => Promise<void>;
   progressMode: "loading" | "backend" | "local";
-  student: { name: string; email: string; usn: string; role: string; lastSeenAt: string } | null;
+  student: { name: string; email: string; role: string; lastSeenAt: string } | null;
 }) {
   async function submitLogout() {
     await logoutStudent();
@@ -235,7 +235,7 @@ function StudentAccessPanel({
         <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4">
           <p className="text-sm font-semibold text-emerald-100">{student.name}</p>
           <p className="mt-1 text-xs text-slate-300">{student.email}</p>
-          <p className="mt-1 text-xs text-slate-300">{student.usn || "No USN added"} · {student.role}</p>
+          <p className="mt-1 text-xs text-slate-300">{student.role}</p>
           <p className="mt-3 text-xs text-slate-400">
             Last active: {new Date(student.lastSeenAt).toLocaleString()}
           </p>

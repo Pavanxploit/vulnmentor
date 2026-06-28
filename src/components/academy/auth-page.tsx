@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { KeyRound, Mail, ShieldCheck, UserRound } from "lucide-react";
 import { AcademyTopNav, Badge } from "./academy-ui";
-import type { ProgressState, StudentSession, UserRole } from "@/lib/progress-types";
+import type { ProgressState, StudentSession } from "@/lib/progress-types";
 
 type AuthMode = "login" | "register";
 
@@ -19,12 +19,9 @@ type AuthResponse = {
 
 export function AuthPage({ mode }: { mode: AuthMode }) {
   const router = useRouter();
-  const [name, setName] = useState("Pavan Kumar");
-  const [email, setEmail] = useState("pavan@example.test");
-  const [password, setPassword] = useState("VulnMentor@123");
-  const [usn, setUsn] = useState("4MH23IC033");
-  const [role, setRole] = useState<UserRole>("student");
-  const [instructorCode, setInstructorCode] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const isRegister = mode === "register";
@@ -35,9 +32,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     setMessage("");
 
     const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
-    const payload = isRegister
-      ? { name, email, password, usn, role, instructorCode }
-      : { email, password };
+    const payload = isRegister ? { name, email, password } : { email, password };
 
     try {
       const response = await fetch(endpoint, {
@@ -87,39 +82,40 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
 
           {isRegister ? (
             <>
-              <Field label="Full name" id="name" value={name} onChange={setName} autoComplete="name" />
-              <Field label="USN / college ID" id="usn" value={usn} onChange={setUsn} autoComplete="off" />
+              <Field
+                label="Full name"
+                id="name"
+                value={name}
+                onChange={setName}
+                autoComplete="name"
+                placeholder="Enter your name"
+              />
             </>
           ) : null}
 
-          <Field label="Email" id="email" value={email} onChange={setEmail} type="email" autoComplete="email" />
-          <Field label="Password" id="password" value={password} onChange={setPassword} type="password" autoComplete={isRegister ? "new-password" : "current-password"} />
+          <Field
+            label="Email"
+            id="email"
+            value={email}
+            onChange={setEmail}
+            type="email"
+            autoComplete="email"
+            placeholder="student@example.com"
+          />
+          <Field
+            label="Password"
+            id="password"
+            value={password}
+            onChange={setPassword}
+            type="password"
+            autoComplete={isRegister ? "new-password" : "current-password"}
+            placeholder={isRegister ? "Minimum 8 characters" : "Enter your password"}
+          />
 
           {isRegister ? (
-            <>
-              <label className="mt-4 block text-sm font-semibold text-slate-200" htmlFor="role">
-                Account role
-              </label>
-              <select
-                id="role"
-                value={role}
-                onChange={(event) => setRole(event.target.value as UserRole)}
-                className="mt-2 min-h-11 w-full rounded-md border border-white/10 bg-slate-950 px-3 text-sm text-white outline-none focus:border-cyan-300"
-              >
-                <option value="student">Student</option>
-                <option value="instructor">Instructor</option>
-              </select>
-              {role === "instructor" ? (
-                <Field
-                  label="Instructor code"
-                  id="instructor-code"
-                  value={instructorCode}
-                  onChange={setInstructorCode}
-                  autoComplete="off"
-                  helper="The first account in a fresh local database becomes instructor automatically. Later instructor accounts need VULNMENTOR_INSTRUCTOR_CODE, except local .test demo accounts outside production."
-                />
-              ) : null}
-            </>
+            <p className="mt-3 text-xs leading-5 text-slate-400">
+              Student accounts can access labs, flags, hints, and progress. Guide Console access is protected separately.
+            </p>
           ) : null}
 
           <button
@@ -152,6 +148,7 @@ function Field({
   id,
   label,
   onChange,
+  placeholder,
   type = "text",
   value,
 }: {
@@ -160,6 +157,7 @@ function Field({
   id: string;
   label: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   type?: string;
   value: string;
 }) {
@@ -171,8 +169,10 @@ function Field({
         value={value}
         type={type}
         autoComplete={autoComplete}
+        placeholder={placeholder}
+        required
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 min-h-11 w-full rounded-md border border-white/10 bg-slate-950 px-3 text-sm text-white outline-none focus:border-cyan-300"
+        className="mt-2 min-h-11 w-full rounded-md border border-white/10 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-300"
       />
       {helper ? <span className="mt-2 block text-xs leading-5 text-slate-400">{helper}</span> : null}
     </label>
