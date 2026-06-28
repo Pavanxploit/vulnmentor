@@ -100,6 +100,7 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 ## Documentation
 
 - [Safety and ethics](./SAFETY.md)
+- [Run locally](./docs/RUN_LOCALLY.md)
 - [Deployment model](./docs/DEPLOYMENT_MODEL.md)
 - [Testing guide](./docs/TESTING_GUIDE.md)
 - [Roadmap](./ROADMAP.md)
