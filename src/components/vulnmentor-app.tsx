@@ -21,7 +21,9 @@ import {
   Play,
   RefreshCcw,
   ShieldCheck,
+  SlidersHorizontal,
   Terminal,
+  X,
 } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { activeChallenge, challenges, type Challenge } from "@/data/challenges";
@@ -69,6 +71,11 @@ const tabs: { id: Tab; label: string }[] = [
 const liveLabCount = challenges.filter(
   (challenge) => challenge.status === "available",
 ).length;
+const categoryOptions = [
+  "All",
+  ...Array.from(new Set(challenges.map((challenge) => challenge.category))),
+];
+const difficultyOptions = ["All", "Easy", "Medium", "Hard"];
 
 export function VulnMentorApp() {
   const [selectedId, setSelectedId] = useState(activeChallenge.id);
@@ -467,6 +474,28 @@ function Sidebar({
   selected: Challenge;
   onSelect: (challenge: Challenge) => void;
 }) {
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [difficultyFilter, setDifficultyFilter] = useState("All");
+  const filteredChallenges = useMemo(
+    () =>
+      challenges.filter((challenge) => {
+        const categoryMatches =
+          categoryFilter === "All" || challenge.category === categoryFilter;
+        const difficultyMatches =
+          difficultyFilter === "All" ||
+          challenge.difficulty === difficultyFilter;
+
+        return categoryMatches && difficultyMatches;
+      }),
+    [categoryFilter, difficultyFilter],
+  );
+  const activeFilters = categoryFilter !== "All" || difficultyFilter !== "All";
+
+  function clearFilters() {
+    setCategoryFilter("All");
+    setDifficultyFilter("All");
+  }
+
   return (
     <aside className="rounded-md border border-[#dedfd7] bg-white p-3 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
@@ -479,47 +508,140 @@ function Sidebar({
         </span>
       </div>
 
+      <div className="mb-3 rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-3">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-[#56625b]">
+            <SlidersHorizontal size={15} />
+            Filters
+          </div>
+          {activeFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex size-7 items-center justify-center rounded-md border border-[#cfd2c8] bg-white text-[#3e4742] transition hover:border-[#8f9992]"
+              title="Clear filters"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <div className="space-y-2">
+          <FilterGroup
+            label="Category"
+            options={categoryOptions}
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            formatLabel={(option) =>
+              option === "All" ? "All" : option.replace(" Security", "")
+            }
+          />
+          <FilterGroup
+            label="Difficulty"
+            options={difficultyOptions}
+            value={difficultyFilter}
+            onChange={setDifficultyFilter}
+          />
+        </div>
+        <p className="mt-3 text-xs text-[#69736d]">
+          Showing {filteredChallenges.length} of {challenges.length} labs
+        </p>
+      </div>
+
       <div className="space-y-2">
-        {challenges.map((challenge) => {
-          const active = challenge.id === selected.id;
-          const locked = challenge.status === "planned";
+        {filteredChallenges.length === 0 ? (
+          <div className="rounded-md border border-dashed border-[#cfd2c8] bg-[#fbfbf8] p-4 text-center">
+            <p className="text-sm font-semibold">No labs match this filter</p>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-3 inline-flex h-9 items-center justify-center rounded-md border border-[#cfd2c8] bg-white px-3 text-sm font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          filteredChallenges.map((challenge) => {
+            const active = challenge.id === selected.id;
+            const locked = challenge.status === "planned";
+
+            return (
+              <button
+                key={challenge.id}
+                type="button"
+                onClick={() => onSelect(challenge)}
+                className={`w-full rounded-md border p-3 text-left transition ${
+                  active
+                    ? "border-[#151716] bg-[#f0f1eb]"
+                    : "border-[#e4e5dd] bg-white hover:border-[#aeb4ad]"
+                }`}
+              >
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold leading-snug">
+                      {challenge.title}
+                    </p>
+                    <p className="mt-1 text-xs text-[#66706b]">
+                      {challenge.category}
+                    </p>
+                  </div>
+                  {locked ? (
+                    <Lock className="shrink-0 text-[#8b918d]" size={16} />
+                  ) : (
+                    <Play className="shrink-0 text-[#0f766e]" size={16} />
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge text={challenge.difficulty} tone="neutral" />
+                  <Badge text={challenge.time} tone="warm" />
+                  <Badge text={`${challenge.points} pts`} tone="teal" />
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function FilterGroup({
+  label,
+  options,
+  value,
+  onChange,
+  formatLabel = (option) => option,
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+  formatLabel?: (value: string) => string;
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-xs font-medium text-[#69736d]">{label}</p>
+      <div className="grid grid-cols-2 gap-1.5">
+        {options.map((option) => {
+          const active = option === value;
 
           return (
             <button
-              key={challenge.id}
+              key={option}
               type="button"
-              onClick={() => onSelect(challenge)}
-              className={`w-full rounded-md border p-3 text-left transition ${
+              onClick={() => onChange(option)}
+              className={`h-8 rounded-md border px-2 text-xs font-semibold transition ${
                 active
-                  ? "border-[#151716] bg-[#f0f1eb]"
-                  : "border-[#e4e5dd] bg-white hover:border-[#aeb4ad]"
+                  ? "border-[#151716] bg-[#151716] text-white"
+                  : "border-[#dfe1d8] bg-white text-[#424a45] hover:border-[#aeb4ad]"
               }`}
+              title={`${label}: ${option}`}
             >
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold leading-snug">
-                    {challenge.title}
-                  </p>
-                  <p className="mt-1 text-xs text-[#66706b]">
-                    {challenge.category}
-                  </p>
-                </div>
-                {locked ? (
-                  <Lock className="shrink-0 text-[#8b918d]" size={16} />
-                ) : (
-                  <Play className="shrink-0 text-[#0f766e]" size={16} />
-                )}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                <Badge text={challenge.difficulty} tone="neutral" />
-                <Badge text={challenge.time} tone="warm" />
-                <Badge text={`${challenge.points} pts`} tone="teal" />
-              </div>
+              {formatLabel(option)}
             </button>
           );
         })}
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -586,7 +708,7 @@ function Workspace({
             />
             <IconButton
               icon={<RefreshCcw size={17} />}
-              label="Reset"
+              label="Reset View"
               onClick={resetLab}
             />
           </div>
@@ -796,6 +918,34 @@ function LabStartCard({ challenge }: { challenge: Challenge }) {
           >
             View Traces
           </a>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 border-t border-[#d7e3ef] pt-4 lg:grid-cols-2">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <RefreshCcw size={16} />
+            Reset This Lab
+          </div>
+          <p className="text-sm leading-6 text-[#4d5852]">
+            Restarting the service clears in-memory lab data, comments, tokens,
+            counters, traces, and captured proof for this challenge.
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-md bg-[#111412] p-3 font-mono text-sm text-[#d7ded8]">
+            <code>{`docker compose restart ${challenge.lab.serviceName}`}</code>
+          </pre>
+        </div>
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <Container size={16} />
+            Full Sandbox Reset
+          </div>
+          <p className="text-sm leading-6 text-[#4d5852]">
+            Use this when every lab should start clean. Clear portal progress
+            from the mentor panel when you want a fresh learner view.
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-md bg-[#111412] p-3 font-mono text-sm text-[#d7ded8]">
+            <code>docker compose down{`\n`}docker compose up --build -d</code>
+          </pre>
         </div>
       </div>
     </div>

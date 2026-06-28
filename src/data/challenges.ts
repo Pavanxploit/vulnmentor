@@ -14,6 +14,7 @@ export type LabEndpoint = {
   baseUrl: string;
   healthUrl: string;
   tracesUrl: string;
+  serviceName: string;
 };
 
 export type Challenge = {
@@ -52,6 +53,7 @@ export const challenges: Challenge[] = [
       baseUrl: "http://127.0.0.1:4010",
       healthUrl: "http://127.0.0.1:4010/health",
       tracesUrl: "http://127.0.0.1:4010/traces",
+      serviceName: "sql-injection-login",
     },
     summary:
       "A login form trusts raw user input and builds a SQL query without parameter binding.",
@@ -121,6 +123,7 @@ const user = await db.get(query);`,
       baseUrl: "http://127.0.0.1:4060",
       healthUrl: "http://127.0.0.1:4060/health",
       tracesUrl: "http://127.0.0.1:4060/traces",
+      serviceName: "stored-xss-comment",
     },
     summary:
       "A comment board stores student input and a reviewer page renders that stored content without output encoding.",
@@ -193,6 +196,7 @@ response.setHeader(
       baseUrl: "http://127.0.0.1:4020",
       healthUrl: "http://127.0.0.1:4020/health",
       tracesUrl: "http://127.0.0.1:4020/traces",
+      serviceName: "api-broken-auth",
     },
     summary:
       "An API validates the token but forgets to verify that the requested account object belongs to the authenticated user.",
@@ -271,6 +275,7 @@ return response.json(account);`,
       baseUrl: "http://127.0.0.1:4030",
       healthUrl: "http://127.0.0.1:4030/health",
       tracesUrl: "http://127.0.0.1:4030/traces",
+      serviceName: "api-jwt-tampering",
     },
     summary:
       "An API decodes JWT claims and trusts the role field without enforcing signature and algorithm verification.",
@@ -346,6 +351,7 @@ return response.json(adminReport);`,
       baseUrl: "http://127.0.0.1:4040",
       healthUrl: "http://127.0.0.1:4040/health",
       tracesUrl: "http://127.0.0.1:4040/traces",
+      serviceName: "api-rate-limit-bypass",
     },
     summary:
       "A password-reset API rate-limits OTP attempts using a spoofable client key instead of a stable account or session key.",
@@ -424,6 +430,7 @@ return verifyOtp(code);`,
       baseUrl: "http://127.0.0.1:4050",
       healthUrl: "http://127.0.0.1:4050/health",
       tracesUrl: "http://127.0.0.1:4050/traces",
+      serviceName: "api-excessive-data-exposure",
     },
     summary:
       "A profile API returns the full database record, exposing internal and sensitive fields that the client does not need.",

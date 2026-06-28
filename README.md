@@ -15,6 +15,8 @@ This repository is intentionally educational. Labs must run only in the controll
 - Docker-based API Excessive Data Exposure lab
 - Lab health check from the portal
 - Runtime trace view from the lab
+- Challenge filtering by category and difficulty
+- Per-lab Docker reset instructions
 - Flag submission workflow
 - Local progress and attempt history
 - Progressive hints
@@ -68,6 +70,19 @@ http://127.0.0.1:4030
 http://127.0.0.1:4040
 http://127.0.0.1:4050
 http://127.0.0.1:4060
+```
+
+Reset one lab when you want a clean challenge state:
+
+```bash
+docker compose restart stored-xss-comment
+```
+
+Reset the full sandbox:
+
+```bash
+docker compose down
+docker compose up --build -d
 ```
 
 Health endpoints:
@@ -142,7 +157,7 @@ npm run build
 Planned additions:
 
 - Backend persistence for users and progress
-- More Web/API labs and secure comparison coverage
+- More secure comparison coverage
 - AI Mentor integration with hint guardrails
 - Admin dashboard
 - Final demo and deployment guide

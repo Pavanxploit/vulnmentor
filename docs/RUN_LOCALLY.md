@@ -72,13 +72,36 @@ http://127.0.0.1:3000
 ## 5. Use The Platform
 
 1. Select a lab from the sidebar.
-2. Open the lab with the `Open Lab` button.
-3. Solve the vulnerability and capture the flag.
-4. Submit the flag in the portal.
-5. Open the Attack tab to refresh traces.
-6. Read Root Cause and Defense tabs for explanation and mitigation.
+2. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
+3. Open the lab with the `Open Lab` button.
+4. Solve the vulnerability and capture the flag.
+5. Submit the flag in the portal.
+6. Open the Attack tab to refresh traces.
+7. Read Root Cause and Defense tabs for explanation and mitigation.
 
-## 6. Stop Everything
+## 6. Reset Labs
+
+Each lab page shows a reset command for its Docker service. Use it when traces, comments, tokens, counters, or captured proof should be cleared.
+
+```bash
+docker compose restart sql-injection-login
+docker compose restart stored-xss-comment
+docker compose restart api-broken-auth
+docker compose restart api-jwt-tampering
+docker compose restart api-rate-limit-bypass
+docker compose restart api-excessive-data-exposure
+```
+
+For a full clean sandbox:
+
+```bash
+docker compose down
+docker compose up --build -d
+```
+
+Portal progress is stored in your browser. Use `Reset Local Progress` in the mentor panel to clear a solved lab from the current browser.
+
+## 7. Stop Everything
 
 Stop the portal with `Ctrl + C` in the terminal running `npm run dev`.
 
@@ -88,7 +111,7 @@ Stop Docker labs:
 docker compose down
 ```
 
-## 7. Common Fixes
+## 8. Common Fixes
 
 Use `127.0.0.1` instead of `localhost` if a browser tab keeps loading.
 
