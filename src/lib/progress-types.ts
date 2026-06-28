@@ -1,7 +1,11 @@
+export type UserRole = "student" | "instructor";
+
 export type StudentSession = {
   id: string;
   name: string;
+  email: string;
   usn: string;
+  role: UserRole;
   createdAt: string;
   lastSeenAt: string;
 };

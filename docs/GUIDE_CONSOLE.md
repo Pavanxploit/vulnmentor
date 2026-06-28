@@ -1,12 +1,12 @@
-# VulnMentor Admin Guide
+# VulnMentor Guide Console
 
-The Admin Console is available at:
+The Instructor Guide Console is available at:
 
 ```text
-http://127.0.0.1:3000/admin
+http://127.0.0.1:3000/guide
 ```
 
-It helps a guide review the lab catalog before a class demo or project evaluation.
+It helps a guide review the lab catalog before a class demo or project evaluation. This route is instructor-only.
 
 ## What It Tracks
 
@@ -56,6 +56,10 @@ Before presenting or adding a new lab:
 6. Add at least three progressive hints.
 7. Add root cause, impact, mitigation, and secure-code comparison.
 8. Confirm the portal can verify the captured flag.
+
+## Access
+
+The first account registered in a fresh local `.data` database becomes an instructor. Later instructor accounts require `VULNMENTOR_INSTRUCTOR_CODE`.
 
 ## Current Scope
 

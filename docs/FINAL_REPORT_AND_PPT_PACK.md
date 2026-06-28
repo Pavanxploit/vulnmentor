@@ -8,7 +8,7 @@ VulnMentor: An AI-Guided Web and API Security CTF Sandbox for Safe Cybersecurity
 
 ## Abstract
 
-VulnMentor is a local-first cybersecurity learning platform designed to help students understand Web and API vulnerabilities through practical CTF-style labs. The platform combines Docker-based vulnerable environments, flag submission, progressive hints, runtime traces, secure-code comparison, guarded mentor guidance, student progress tracking, and an admin challenge management console. The project focuses on safe learning by keeping vulnerable services on localhost while explaining the attack flow, root cause, detection indicators, impact, and mitigation for each lab. The current implementation includes SQL Injection, Stored XSS, Broken Object Level Authorization, JWT tampering, OTP rate-limit bypass, and excessive data exposure labs mapped to OWASP concepts.
+VulnMentor is a local-first cybersecurity learning platform designed to help students understand Web and API vulnerabilities through practical CTF-style labs. The platform combines Docker-based vulnerable environments, flag submission, progressive hints, runtime traces, secure-code comparison, guarded mentor guidance, student progress tracking, and an instructor Guide Console. The project focuses on safe learning by keeping vulnerable services on localhost while explaining the attack flow, root cause, detection indicators, impact, and mitigation for each lab. The current implementation includes SQL Injection, Stored XSS, Broken Object Level Authorization, JWT tampering, OTP rate-limit bypass, and excessive data exposure labs mapped to OWASP concepts.
 
 ## Problem Statement
 
@@ -21,7 +21,7 @@ Students often learn cybersecurity concepts theoretically, but they may not get 
 - Include both vulnerable and secure implementations for comparison.
 - Show traces and logs so students understand detection signals.
 - Track student progress and flag attempts.
-- Provide a guide/admin view for challenge readiness and lab review.
+- Provide an instructor guide view for challenge readiness and lab review.
 - Keep the platform suitable for college demonstrations and portfolio use.
 
 ## Scope
@@ -35,7 +35,7 @@ The current scope includes a local Next.js learning portal and Docker-based vuln
 3. Add secure versions to demonstrate mitigation.
 4. Connect each lab to the portal with scenario, hints, target URL, traces, and flag submission.
 5. Store student progress and attempts for demo reporting.
-6. Add guide/admin review screens for lab management and evaluation.
+6. Add instructor guide review screens for lab management and evaluation.
 7. Document safety rules, architecture, testing steps, and future scope.
 
 ## Modules
@@ -49,7 +49,7 @@ The current scope includes a local Next.js learning portal and Docker-based vuln
 | Secure Comparison | Vulnerable vs secure code on each lab page |
 | Runtime Traces | Lab activity logs for defender-style learning |
 | AI Mentor Guardrails | Lab-only guidance and refusal behavior for real-world targets |
-| Admin Console | Challenge readiness, verifier IDs, Docker service review, and authoring snapshot |
+| Guide Console | Challenge readiness, verifier IDs, Docker service review, and authoring snapshot |
 
 ## Implemented Labs
 
@@ -84,10 +84,10 @@ The current scope includes a local Next.js learning portal and Docker-based vuln
 | 6 | Existing System | General CTF platforms and vulnerable apps |
 | 7 | Proposed System | VulnMentor learning platform and Docker sandbox |
 | 8 | Architecture | Portal, Docker labs, health/traces, flag verification |
-| 9 | Modules | Dashboard, labs, mentor, reports, admin console |
+| 9 | Modules | Dashboard, labs, mentor, reports, Guide Console |
 | 10 | Implemented Labs | SQLi, XSS, BOLA, JWT, rate limit, data exposure |
-| 11 | Unique Features | Secure comparison, traces, safe mentor, admin readiness board |
-| 12 | Screenshots | Homepage, dashboard, lab page, admin console |
+| 11 | Unique Features | Secure comparison, traces, safe mentor, instructor readiness board |
+| 12 | Screenshots | Homepage, dashboard, lab page, Guide Console |
 | 13 | Results | Working labs, progress tracking, reports, verified build |
 | 14 | Safety And Ethics | Localhost-only vulnerable targets and safe usage rules |
 | 15 | Future Scope | Hosted frontend, class mode, template generator, more labs |
@@ -98,7 +98,7 @@ The current scope includes a local Next.js learning portal and Docker-based vuln
 - The vulnerable targets run locally in Docker and should not be publicly exposed.
 - The portal can be hosted safely because it is separate from the vulnerable services.
 - Each lab teaches attack, trace/detection, root cause, and secure fix.
-- The admin console helps guides review lab readiness before a class or demo.
+- The Guide Console helps instructors review lab readiness before a class or demo.
 - The mentor is guarded and currently lab-focused to avoid helping with real-world targets.
 - The project is useful for AppSec, SOC, bug bounty preparation, and cybersecurity education.
 
@@ -109,7 +109,7 @@ The current scope includes a local Next.js learning portal and Docker-based vuln
 | Why Web plus API labs? | Modern applications depend heavily on APIs, so Web and API security together give better real-world learning. |
 | Why Docker? | Docker makes labs repeatable, isolated, and easy to reset on a student laptop. |
 | Why not host vulnerable labs publicly? | Public vulnerable labs can be abused. The safe model is local Docker, private network, or restricted cyber range. |
-| What makes it unique? | It combines CTF flags, traces, secure-code comparison, mentor guardrails, progress reports, and admin readiness review. |
+| What makes it unique? | It combines CTF flags, traces, secure-code comparison, mentor guardrails, progress reports, and instructor readiness review. |
 | How does it help students? | Students learn practical exploitation and also understand root cause, impact, mitigation, and detection. |
 | What is the future scope? | Hosted safe frontend, multi-student class mode, database-backed reporting, more labs, and lab template generator. |
 

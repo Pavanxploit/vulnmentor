@@ -67,18 +67,21 @@ Open:
 
 ```text
 http://127.0.0.1:3000
-http://127.0.0.1:3000/admin
+http://127.0.0.1:3000/register
+http://127.0.0.1:3000/login
+http://127.0.0.1:3000/guide
 ```
 
 ## 5. Use The Platform
 
-1. Select a lab from the sidebar.
-2. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
-3. Open the lab with the `Open Lab` button.
-4. Solve the vulnerability and capture the flag.
-5. Submit the flag in the portal.
-6. Open the Attack tab to refresh traces.
-7. Read Root Cause and Defense tabs for explanation and mitigation.
+1. Create an account or sign in.
+2. Select a lab from the sidebar.
+3. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
+4. Open the lab with the `Open Lab` button.
+5. Solve the vulnerability and capture the flag.
+6. Submit the flag in the portal.
+7. Open the Attack tab to refresh traces.
+8. Read Root Cause and Defense tabs for explanation and mitigation.
 
 ## 6. Reset Labs
 
@@ -100,7 +103,7 @@ docker compose down
 docker compose up --build -d
 ```
 
-Portal progress is stored in your browser. Use `Reset Local Progress` in the mentor panel to clear a solved lab from the current browser.
+Account progress is stored in `.data/vulnmentor-progress.json`. The first account created in a fresh local database becomes an instructor account.
 
 ## 7. Stop Everything
 

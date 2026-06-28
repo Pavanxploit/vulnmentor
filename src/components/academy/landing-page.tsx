@@ -44,6 +44,14 @@ const reasons = [
   "Defense notes so students learn fixes, not only attacks",
 ];
 
+const howItWorks = [
+  { title: "Start Docker labs", body: "Run the local sandbox services before opening a target.", icon: Boxes },
+  { title: "Open target", body: "Launch the lab URL from the protected lab page.", icon: TerminalSquare },
+  { title: "Use hints", body: "Reveal progressive hints only when you need guidance.", icon: BrainCircuit },
+  { title: "Capture flag", body: "Submit the captured flag through your signed-in account.", icon: Flag },
+  { title: "Learn the fix", body: "Review root cause, traces, and secure-code comparison.", icon: ShieldCheck },
+];
+
 export function LandingPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
@@ -62,7 +70,7 @@ export function LandingPage() {
               hints, flags, traces, and practical defense explanations.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <PrimaryLink href="/dashboard">Start Learning</PrimaryLink>
+              <PrimaryLink href="/register">Start Learning</PrimaryLink>
               <SecondaryLink href="/dashboard#labs">View Labs</SecondaryLink>
             </div>
 
@@ -80,6 +88,30 @@ export function LandingPage() {
                 <p className="mt-1 text-xs uppercase text-slate-400">local</p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-white/10 bg-white/[0.03]">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="How it works"
+            title="From setup to secure fix in five steps"
+            body="The workflow is designed so a beginner always knows what to do next inside the local lab environment."
+          />
+          <div className="mt-8 grid gap-3 md:grid-cols-5">
+            {howItWorks.map((step, index) => (
+              <article key={step.title} className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-300/10 text-emerald-100">
+                    <step.icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="font-mono text-xs text-slate-500">0{index + 1}</span>
+                </div>
+                <h3 className="mt-4 font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{step.body}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>

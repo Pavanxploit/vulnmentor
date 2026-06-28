@@ -19,15 +19,15 @@ Status: complete
 
 ## Phase 2: Real Learning Workflow
 
-- [x] Add demo student login
+- [x] Add student access flow
 - [x] Add server-side flag verification endpoint
-- [x] Store local browser progress for prototype demos
+- [x] Store early prototype browser progress
 - [x] Store backend-backed progress in local JSON database
 - [x] Store local flag attempt history
 - [x] Add lab completion states
 - [x] Add challenge filtering by category and difficulty
 - [x] Add lab reset instructions
-- [ ] Move progress from local storage to a database after authentication is added
+- [x] Move protected progress from browser storage to account-backed local database
 
 ## Phase 3: More Web And API Labs
 
@@ -47,9 +47,9 @@ Status: complete
 - [x] Add OWASP mapping per lab
 - [x] Add refusal behavior for real-world targets
 
-## Phase 5: Admin And Reporting
+## Phase 5: Guide Console And Reporting
 
-- [x] Admin challenge management
+- [x] Instructor guide console
 - [x] Lab authoring format
 - [x] Student progress report
 - [x] Attempt logs dashboard
@@ -84,7 +84,7 @@ Status: complete
 - [x] Add backend session API
 - [x] Add local JSON progress database under `.data`
 - [x] Save signed-in student flag attempts through the backend
-- [x] Keep local browser progress as fallback mode
+- [x] Keep legacy browser progress fallback for local prototypes
 - [x] Add dashboard student access panel
 
 ## Phase 9: Secure Comparison Completion
@@ -94,7 +94,20 @@ Status: complete
 - [x] Add per-lab secure coding checklist from mitigation notes
 - [x] Update lab checklist to include secure-code comparison
 
+## Phase 10: Real User Access Hardening
+
+- [x] Add email/password registration and login pages
+- [x] Hash account passwords with per-user salts
+- [x] Store sessions in HTTP-only cookies
+- [x] Add student and instructor roles
+- [x] Protect dashboard, labs, flag submission, and guide console routes
+- [x] Rename public management wording to Guide Console / Instructor Console
+- [x] Remove plaintext flags from the portal verifier and compare hashed values
+- [x] Add homepage "How it works" section for beginners
+
 ## Remaining Focus Areas
+
+These are last-phase items. Do not start them until explicitly requested.
 
 - Record actual demo video
 - Generate final report and PPT files

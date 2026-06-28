@@ -62,9 +62,9 @@ Suggested line:
 
 > The mentor is currently offline and rule-based, which makes it reliable for demos. The important part is that the guardrails are already designed before connecting any hosted LLM.
 
-## 5. Admin And Reporting Demo
+## 5. Guide Console And Reporting Demo
 
-Open the Admin Console at `http://localhost:3000/admin`, then open the reporting/progress areas from the dashboard.
+Open the Guide Console at `http://localhost:3000/guide`, then open the reporting/progress areas from the dashboard.
 
 Show:
 
@@ -80,7 +80,7 @@ Show:
 
 Suggested line:
 
-> The admin and reporting views help a guide verify lab readiness, review student progress, and prepare the platform for future multi-student class mode.
+> The guide and reporting views help an instructor verify lab readiness, review student progress, and prepare the platform for future multi-student class mode.
 
 ## 6. Closing
 

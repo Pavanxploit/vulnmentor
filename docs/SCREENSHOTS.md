@@ -10,7 +10,7 @@ The `screenshots` folder contains GitHub-ready images for the README, project re
 | `screenshots/02-report-dashboard.png` | Dashboard with sidebar, progress, lab grid, activity, and student access |
 | `screenshots/03-sqli-lab.png` | SQL Injection lab detail page with vulnerable vs secure comparison |
 | `screenshots/04-stored-xss-lab.png` | Stored XSS lab detail page with vulnerable vs secure comparison |
-| `screenshots/05-admin-console.png` | Guide/Admin challenge management console with lab readiness and authoring snapshot |
+| `screenshots/05-guide-console.png` | Instructor Guide Console with lab readiness and authoring snapshot |
 
 ## Regenerate Screenshots
 

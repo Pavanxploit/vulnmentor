@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { LabDetailPage } from "@/components/academy/lab-detail-page";
 import { challenges } from "@/data/challenges";
+import { requireAuthenticatedPage } from "@/lib/auth-guards";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return challenges.map((challenge) => ({ id: challenge.id }));
@@ -32,6 +35,7 @@ export default async function LabRoute({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await requireAuthenticatedPage(`/labs/${id}`);
   const challenge = challenges.find((item) => item.id === id);
 
   if (!challenge) {

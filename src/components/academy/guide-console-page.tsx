@@ -31,7 +31,7 @@ const checklistItems = [
   "Trace endpoint ready",
 ];
 
-export function AdminPage() {
+export function GuideConsolePage() {
   const [category, setCategory] = useState("All categories");
   const [difficulty, setDifficulty] = useState("All difficulty");
   const [query, setQuery] = useState("");
@@ -66,13 +66,13 @@ export function AdminPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto grid max-w-[1500px] min-w-0 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
-        <DashboardSidebar />
+        <DashboardSidebar showGuide />
 
         <section className="min-w-0 space-y-5">
           <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-5 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <Badge tone="cyan">Guide console</Badge>
-              <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Challenge Management</h1>
+              <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Instructor Guide Console</h1>
               <p className="mt-2 max-w-3xl break-words text-sm leading-6 text-slate-300">
                 Review lab readiness, verifier mapping, Docker targets, learning coverage, and secure-code evidence before a demo or class session.
               </p>

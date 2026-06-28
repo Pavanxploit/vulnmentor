@@ -80,6 +80,6 @@ The current build is intentionally local-first. A later production-style version
 - Authentication
 - Database-backed progress
 - Multi-student class mode
-- Admin challenge management
+- Instructor guide console
 - Hosted safe portal
 - Private cyber range or VM-backed lab execution

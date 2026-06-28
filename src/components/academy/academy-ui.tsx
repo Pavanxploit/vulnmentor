@@ -11,7 +11,7 @@ export const sidebarItems = [
   { label: "Learning Paths", href: "/dashboard#learning-paths", icon: Route },
   { label: "Labs", href: "/dashboard#labs", icon: FlaskConical },
   { label: "Progress", href: "/dashboard#progress", icon: Trophy },
-  { label: "Admin", href: "/admin", icon: ClipboardCheck },
+  { label: "Guide Console", href: "/guide", icon: ClipboardCheck, guideOnly: true },
   { label: "Notes", href: "/dashboard#notes", icon: NotebookPen },
   { label: "Settings", href: "/dashboard#settings", icon: Settings },
 ] as const;
@@ -138,12 +138,9 @@ export function AcademyTopNav() {
           <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/dashboard#labs">
             Labs
           </Link>
-          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/admin">
-            Admin
-          </Link>
         </nav>
         <Link
-          href="/dashboard"
+          href="/register"
           className="inline-flex min-h-10 items-center justify-center rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 text-sm font-semibold text-emerald-100 hover:bg-emerald-300/15 sm:px-4"
         >
           <span className="sm:hidden">Start</span>
@@ -154,7 +151,7 @@ export function AcademyTopNav() {
   );
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ showGuide = false }: { showGuide?: boolean }) {
   return (
     <aside className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-slate-950/80 p-3 lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)]">
       <div className="mb-5 px-2">
@@ -162,7 +159,7 @@ export function DashboardSidebar() {
         <p className="mt-1 text-sm text-slate-400">Plan, practice, submit, improve.</p>
       </div>
       <nav className="space-y-1" aria-label="Dashboard navigation">
-        {sidebarItems.map((item) => (
+        {sidebarItems.filter((item) => !("guideOnly" in item) || showGuide).map((item) => (
           <Link
             key={item.label}
             href={item.href}

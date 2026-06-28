@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { recordProgressAttempt } from "@/lib/progress-store";
 import { getSessionId } from "@/lib/session-cookie";
 
-const flagsByChallenge = new Map<string, string>([
-  ["web-sqli-login", "VM{sql_auth_bypass}"],
-  ["web-xss-comment", "VM{stored_xss_needs_output_encoding}"],
-  ["api-broken-auth", "VM{api_bola_idor_mastered}"],
-  ["api-jwt-tampering", "VM{jwt_claims_need_verification}"],
-  ["api-rate-limit-bypass", "VM{rate_limits_need_stable_keys}"],
-  ["api-excessive-data-exposure", "VM{return_only_required_fields}"],
+const flagHashesByChallenge = new Map<string, string>([
+  ["web-sqli-login", "bd1078d83ec94b44d7891a6935439768e3cf59c1735fe6a893cb157b8255ee4a"],
+  ["web-xss-comment", "e5d780609c26d150c036f08462bdf635cef13b50c4e2b015c481dcd962819af6"],
+  ["api-broken-auth", "d2c1051df41280952d8939eda4a1471ea262abe5b006dc12a5121e3d04a99b5e"],
+  ["api-jwt-tampering", "6dddf39e4f32bd65082ec6f68391386edec3c3bd6123d9f77f879f6c743686ea"],
+  ["api-rate-limit-bypass", "17aeb80d80b99303355e88fd3d17d2beb1cd5c71ea10ab7711cb295225ef1967"],
+  ["api-excessive-data-exposure", "43b51df386690149f80278da0f419bedace1a4274156acce617fd995c992b9b9"],
 ]);
 
 export async function POST(request: NextRequest) {
+  const sessionId = getSessionId(request);
+  if (!sessionId) {
+    return NextResponse.json(
+      { ok: false, message: "Sign in before submitting flags." },
+      { status: 401 },
+    );
+  }
+
   let body: unknown;
 
   try {
@@ -30,25 +39,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const expectedFlag = flagsByChallenge.get(body.challengeId);
+  const expectedFlagHash = flagHashesByChallenge.get(body.challengeId);
 
-  if (!expectedFlag) {
+  if (!expectedFlagHash) {
     return NextResponse.json(
       { ok: false, message: "Challenge verifier is not available yet." },
       { status: 404 },
     );
   }
 
-  const correct = body.flag.trim() === expectedFlag;
-  const sessionId = getSessionId(request);
-  const progress = sessionId
-    ? await recordProgressAttempt({
-        sessionId,
-        challengeId: body.challengeId,
-        flagPreview: previewFlag(body.flag.trim()),
-        correct,
-      })
-    : null;
+  const submittedFlag = body.flag.trim();
+  const correct = safeHashEqual(hashFlag(submittedFlag), expectedFlagHash);
+  const progress = await recordProgressAttempt({
+    sessionId,
+    challengeId: body.challengeId,
+    flagPreview: previewFlag(submittedFlag),
+    correct,
+  });
+
+  if (!progress) {
+    return NextResponse.json(
+      { ok: false, message: "Session expired. Please sign in again." },
+      { status: 401 },
+    );
+  }
 
   return NextResponse.json({
     ok: true,
@@ -61,8 +75,18 @@ export async function POST(request: NextRequest) {
 }
 
 function previewFlag(flag: string) {
-  if (flag.length <= 10) return flag;
+  if (flag.length <= 10) return "***";
   return `${flag.slice(0, 6)}...${flag.slice(-4)}`;
+}
+
+function hashFlag(flag: string) {
+  return createHash("sha256").update(`vulnmentor:${flag}`).digest("hex");
+}
+
+function safeHashEqual(actualHash: string, expectedHash: string) {
+  const actual = Buffer.from(actualHash, "hex");
+  const expected = Buffer.from(expectedHash, "hex");
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
 function isFlagRequest(value: unknown): value is {

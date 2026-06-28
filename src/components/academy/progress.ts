@@ -14,13 +14,6 @@ type SessionResponse = {
   progress: ProgressState | null;
 };
 
-type LoginResponse = {
-  ok: boolean;
-  message?: string;
-  student?: StudentSession;
-  progress?: ProgressState;
-};
-
 const progressStorageKey = "vulnmentor-progress-v1";
 
 export function useLearningProgress(challenges: Challenge[]) {
@@ -41,7 +34,7 @@ export function useLearningProgress(challenges: Challenge[]) {
         return;
       }
     } catch {
-      setAuthMessage("Backend progress is unavailable. Using local browser progress.");
+      setAuthMessage("Account progress is unavailable. Sign in again if the session expired.");
     }
 
     setStudent(null);
@@ -66,31 +59,12 @@ export function useLearningProgress(challenges: Challenge[]) {
     [student],
   );
 
-  const loginStudent = useCallback(async (input: { name: string; usn: string }) => {
-    setAuthMessage("");
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-    const result = (await response.json()) as LoginResponse;
-
-    if (!response.ok || !result.ok || !result.student || !result.progress) {
-      throw new Error(result.message ?? "Could not sign in.");
-    }
-
-    setStudent(result.student);
-    setProgress(result.progress);
-    setProgressMode("backend");
-    setAuthMessage("Backend progress is active for this student.");
-  }, []);
-
   const logoutStudent = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setStudent(null);
     setProgress(readStoredProgress());
     setProgressMode("local");
-    setAuthMessage("Signed out. Local browser progress is active.");
+    setAuthMessage("Signed out.");
   }, []);
 
   const recordLocalAttempt = useCallback(
@@ -147,7 +121,6 @@ export function useLearningProgress(challenges: Challenge[]) {
       totalPoints,
       accuracy,
       applyProgress,
-      loginStudent,
       logoutStudent,
       recordLocalAttempt,
       resetLocalProgress,
@@ -161,7 +134,6 @@ export function useLearningProgress(challenges: Challenge[]) {
     student,
     applyProgress,
     loadSession,
-    loginStudent,
     logoutStudent,
     recordLocalAttempt,
     resetLocalProgress,
@@ -185,6 +157,6 @@ function readStoredProgress(): ProgressState {
 }
 
 export function previewFlag(flag: string) {
-  if (flag.length <= 10) return flag;
+  if (flag.length <= 10) return "***";
   return `${flag.slice(0, 6)}...${flag.slice(-4)}`;
 }

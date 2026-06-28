@@ -22,7 +22,7 @@ Use this checklist before presenting VulnMentor in a college review, guide meeti
 5. Show hints, traces, and flag submission.
 6. Show root cause and defense guidance.
 7. Open the AI Mentor and demonstrate safe lab-only guidance.
-8. Open the Admin Console and show lab readiness.
+8. Open the Guide Console and show lab readiness.
 9. Open the report/progress area and explain exportable demo data.
 10. Close with future scope: multi-student class mode, generated lab templates, and hosted safe portal.
 
@@ -41,7 +41,7 @@ Use this checklist before presenting VulnMentor in a college review, guide meeti
 - The project is safe because vulnerable targets run locally in Docker.
 - The project is not only exploitation-focused; it also teaches detection, explanation, mitigation, and secure comparison.
 - The mentor is currently offline and guarded, so it is safe for college demo use.
-- The admin console helps guides review lab readiness before a class session.
+- The Guide Console helps instructors review lab readiness before a class session.
 - The architecture can later support class-level reporting and a hosted safe frontend.
 
 ## Do Not Do

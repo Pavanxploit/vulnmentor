@@ -169,6 +169,47 @@ async function waitForText(client, text) {
   throw new Error(`Expected text not found: ${text}`);
 }
 
+async function authenticateDemoUser(client) {
+  await client.send("Page.navigate", { url: portalUrl });
+  await waitForReady(client);
+  await evaluate(
+    client,
+    `(async () => {
+      const credentials = {
+        email: "guide@example.test",
+        password: "VulnMentor@123"
+      };
+
+      const login = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials)
+      });
+
+      if (login.ok) return "logged-in";
+
+      const register = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Guide User",
+          email: credentials.email,
+          password: credentials.password,
+          usn: "GUIDE",
+          role: "instructor"
+        })
+      });
+
+      if (!register.ok) {
+        const error = await register.json().catch(() => ({ message: "Registration failed" }));
+        throw new Error(error.message ?? "Registration failed");
+      }
+
+      return "registered";
+    })()`,
+  );
+}
+
 async function setViewportToContent(client) {
   const metrics = await evaluate(
     client,
@@ -275,9 +316,9 @@ const screenshots = [
     expectText: "Stored XSS",
   },
   {
-    file: "05-admin-console.png",
-    url: `${portalUrl}/admin`,
-    expectText: "Challenge Management",
+    file: "05-guide-console.png",
+    url: `${portalUrl}/guide`,
+    expectText: "Instructor Guide Console",
   },
 ];
 
@@ -315,6 +356,7 @@ async function main() {
     await client.send("Emulation.setDefaultBackgroundColorOverride", {
       color: { r: 255, g: 255, b: 255, a: 1 },
     });
+    await authenticateDemoUser(client);
 
     for (const item of screenshots) {
       await capture(client, item);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loginAccount } from "@/lib/progress-store";
+import { registerAccount } from "@/lib/progress-store";
 import { sessionCookieName } from "@/lib/session-cookie";
+import type { UserRole } from "@/lib/progress-types";
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -14,21 +15,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!isLoginRequest(body)) {
+  if (!isRegisterRequest(body)) {
     return NextResponse.json(
-      { ok: false, message: "Email and password are required." },
+      { ok: false, message: "Name, email, and password are required." },
       { status: 400 },
     );
   }
 
-  let result: Awaited<ReturnType<typeof loginAccount>>;
+  let result: Awaited<ReturnType<typeof registerAccount>>;
 
   try {
-    result = await loginAccount(body);
+    result = await registerAccount(body);
   } catch (error) {
     return NextResponse.json(
-      { ok: false, message: error instanceof Error ? error.message : "Could not sign in." },
-      { status: 401 },
+      { ok: false, message: error instanceof Error ? error.message : "Could not create account." },
+      { status: 400 },
     );
   }
 
@@ -49,13 +50,25 @@ export async function POST(request: NextRequest) {
   return response;
 }
 
-function isLoginRequest(value: unknown): value is { email: string; password: string } {
+function isRegisterRequest(value: unknown): value is {
+  name: string;
+  email: string;
+  password: string;
+  usn?: string;
+  role?: UserRole;
+  instructorCode?: string;
+} {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
   return (
+    typeof candidate.name === "string" &&
+    candidate.name.trim().length > 0 &&
     typeof candidate.email === "string" &&
     candidate.email.trim().length > 0 &&
     typeof candidate.password === "string" &&
-    candidate.password.length > 0
+    candidate.password.length > 0 &&
+    (candidate.usn === undefined || typeof candidate.usn === "string") &&
+    (candidate.role === undefined || candidate.role === "student" || candidate.role === "instructor") &&
+    (candidate.instructorCode === undefined || typeof candidate.instructorCode === "string")
   );
 }

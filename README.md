@@ -11,7 +11,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Vulnerable and secure comparison views
 - Dockerized localhost lab targets
 - Guarded offline AI Mentor for safe learning guidance
-- Admin-style progress report with JSON/CSV export
+- Instructor guide console and progress report with JSON/CSV export
 - Public-safe documentation for college demos and portfolio review
 
 ## Screenshots
@@ -35,15 +35,18 @@ This repository is intentionally educational. Labs must run only in the controll
 - Per-lab Docker reset instructions
 - Vulnerable vs secure implementation comparison on every lab page
 - Flag submission workflow
-- Local progress and attempt history
+- Account progress and attempt history
 - Progressive hints
 - Offline AI Mentor with lab-only guardrails
 - Safe refusal behavior for real-world target requests
 - OWASP mapping and post-solve debrief guidance
-- Demo student login with HTTP-only session cookie
-- Backend-backed progress using local JSON database storage
-- Guide/Admin challenge management console
-- Admin-style report tab
+- Email/password login and registration
+- HTTP-only session cookie with production secure-cookie mode
+- Student and instructor roles
+- Protected dashboard, labs, flag submission, and guide console routes
+- Backend-backed account progress using local JSON database storage
+- Guide Console challenge management
+- Instructor-only report/guide tooling
 - Student progress report and attempt logs dashboard
 - Exportable JSON/CSV demo data
 - Challenge authoring format reference
@@ -79,19 +82,22 @@ Open:
 
 ```text
 http://localhost:3000
+http://localhost:3000/register
+http://localhost:3000/login
 http://localhost:3000/dashboard
 http://localhost:3000/labs/web-sqli-login
+http://localhost:3000/guide
 ```
 
 The stable pre-redesign version is marked in Git as `backup-before-academy-ui-bfbe0f5`.
 
-Backend progress is stored locally in:
+Account sessions and progress are stored locally in:
 
 ```text
 .data/vulnmentor-progress.json
 ```
 
-The `.data` folder is ignored by Git because it contains local demo student sessions and attempt history.
+The `.data` folder is ignored by Git because it contains local user accounts, password hashes, sessions, and attempt history.
 
 ## Run The Labs
 
@@ -149,7 +155,7 @@ http://127.0.0.1:4060/traces
 
 ## Flag Policy
 
-Flags are intentionally not listed in the README. Learners should solve each local lab and submit captured flags through the VulnMentor portal. This keeps the public project page useful for guides and recruiters without turning it into an answer sheet.
+Flags are intentionally not listed in the README. Learners should solve each local lab and submit captured flags through the VulnMentor portal. The portal verifier stores hashed flag values instead of plaintext answers.
 
 ## Safe Usage Rules
 
@@ -179,7 +185,7 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 - [Remaining phases](./docs/REMAINING_PHASES.md)
 - [Screenshots](./docs/SCREENSHOTS.md)
 - [Testing guide](./docs/TESTING_GUIDE.md)
-- [Admin guide](./docs/ADMIN_GUIDE.md)
+- [Guide console](./docs/GUIDE_CONSOLE.md)
 - [Roadmap](./ROADMAP.md)
 
 ## Scripts
