@@ -19,7 +19,7 @@ Check:
 
 - Page loads without console errors.
 - Labs appear in the sidebar.
-- SQL Injection, API Broken Authorization, JWT Tampering, Rate Limit Bypass, and Excessive Data Exposure labs open.
+- SQL Injection, Stored XSS, API Broken Authorization, JWT Tampering, Rate Limit Bypass, and Excessive Data Exposure labs open.
 - Hints reveal one by one.
 - Flag form accepts input.
 - Brief, Attack, Root Cause, and Defense tabs work.
@@ -34,6 +34,7 @@ Open:
 
 ```text
 http://127.0.0.1:4010
+http://127.0.0.1:4060
 http://127.0.0.1:4020
 http://127.0.0.1:4030
 http://127.0.0.1:4040
@@ -48,6 +49,16 @@ Check SQL Injection lab:
 - Flag is shown only after successful bypass.
 - `/health` returns `ok`.
 - `/traces` returns recent login attempts.
+
+Check Stored XSS lab:
+
+- Home page loads.
+- Submitting a comment stores it on the board.
+- Public board and secure review page encode stored comments as text.
+- Admin review page renders stored comment content through the vulnerable path.
+- Collector page records local proof and shows the flag when the reviewer cookie is captured.
+- `/health` returns `ok`.
+- `/traces` returns recent comment, review, and collector events.
 
 Check API Broken Authorization lab:
 

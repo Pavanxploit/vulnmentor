@@ -38,3 +38,11 @@ services:
     ports:
       - "4050:4050"
     restart: unless-stopped
+
+  stored-xss-comment:
+    build:
+      context: ./labs/stored-xss-comment
+    container_name: vulnmentor-stored-xss-lab
+    ports:
+      - "4060:4060"
+    restart: unless-stopped

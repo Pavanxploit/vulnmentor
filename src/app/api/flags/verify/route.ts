@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const flagsByChallenge = new Map<string, string>([
   ["web-sqli-login", "VM{sql_auth_bypass}"],
+  ["web-xss-comment", "VM{stored_xss_needs_output_encoding}"],
   ["api-broken-auth", "VM{api_bola_idor_mastered}"],
   ["api-jwt-tampering", "VM{jwt_claims_need_verification}"],
   ["api-rate-limit-bypass", "VM{rate_limits_need_stable_keys}"],

@@ -34,7 +34,7 @@ Status: in progress
 - [x] JWT tampering
 - [x] Rate limit bypass
 - [x] Excessive data exposure
-- [ ] Stored XSS
+- [x] Stored XSS
 - [x] Secure version comparison for API BOLA lab
 - [ ] Secure version for every vulnerable lab
 

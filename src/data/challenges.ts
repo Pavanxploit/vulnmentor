@@ -113,20 +113,72 @@ const user = await db.get(query);`,
     title: "Stored XSS In Comments",
     category: "Web Security",
     difficulty: "Medium",
-    status: "planned",
+    status: "available",
     time: "35 min",
     points: 140,
     verifierId: "web-xss-comment",
+    lab: {
+      baseUrl: "http://127.0.0.1:4060",
+      healthUrl: "http://127.0.0.1:4060/health",
+      tracesUrl: "http://127.0.0.1:4060/traces",
+    },
     summary:
-      "A comment board renders stored user content without output encoding.",
+      "A comment board stores student input and a reviewer page renders that stored content without output encoding.",
     skills: ["OWASP A03 Injection", "Output Encoding", "Browser Security"],
-    workflow: ["Attack", "Root Cause", "Detection", "Defense"],
-    hints: [],
-    logs: [],
-    rootCause: "",
-    mitigation: [],
-    impact: "",
-    code: { vulnerable: "", secure: "" },
+    workflow: ["Store Comment", "Trigger Review", "Collect Proof", "Compare Fix"],
+    hints: [
+      {
+        title: "Hint 1",
+        body: "Start by submitting a harmless comment and compare how the public board and admin review page display it.",
+      },
+      {
+        title: "Hint 2",
+        body: "The vulnerable sink is the reviewer view. Stored content is inserted as HTML there instead of being treated as text.",
+      },
+      {
+        title: "Hint 3",
+        body: "The objective is to prove browser execution in the local admin review flow and send the readable lab cookie to the collector endpoint.",
+      },
+    ],
+    logs: [
+      "15:18:09 POST /comment author=student length=128 stored=true",
+      "15:18:24 GET /admin/review status=200 sink=raw-html cookie=readable",
+      "15:18:25 GET /collect status=200 source=127.0.0.1 solved=true",
+      "15:19:12 GET /secure/review status=200 sink=encoded cookie=httponly",
+    ],
+    rootCause:
+      "The application stores untrusted comments and later renders them as HTML in the admin review page. Because output encoding is missing at the sink, the browser can interpret stored user input as active content.",
+    mitigation: [
+      "Encode user-controlled content before rendering it into HTML pages.",
+      "Avoid raw HTML rendering APIs unless the content is trusted and sanitized with an allowlist.",
+      "Use HttpOnly and SameSite cookies so browser scripts cannot read sensitive session values.",
+      "Add a restrictive Content Security Policy to reduce script execution impact.",
+      "Test every stored-content display path, not only the original form submission page.",
+    ],
+    impact:
+      "An attacker can store malicious browser content that executes later when a reviewer or admin opens the page, potentially stealing session data or performing actions as that user.",
+    console: [
+      "$ open http://127.0.0.1:4060",
+      "$ submit a stored browser-execution proof through the comment form",
+      "$ open /admin/review to trigger the vulnerable rendering path",
+      "$ check /loot and /traces for the captured local flag",
+    ],
+    code: {
+      vulnerable: `comments.map((comment) => (
+  <div
+    key={comment.id}
+    dangerouslySetInnerHTML={{ __html: comment.body }}
+  />
+));`,
+      secure: `comments.map((comment) => (
+  <p key={comment.id}>{comment.body}</p>
+));
+
+response.setHeader(
+  "Set-Cookie",
+  "session=...; HttpOnly; SameSite=Lax; Secure"
+);`,
+    },
   },
   {
     id: "api-broken-auth",

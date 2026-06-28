@@ -8,6 +8,7 @@ This repository is intentionally educational. Labs must run only in the controll
 
 - Next.js learning portal
 - Docker-based SQL Injection login lab
+- Docker-based Stored XSS comment lab
 - Docker-based API Broken Authorization / IDOR lab
 - Docker-based API JWT tampering lab
 - Docker-based API Rate Limit Bypass lab
@@ -32,7 +33,7 @@ VulnMentor Portal
     |
     | checks health/traces
     v
-Docker Labs on 127.0.0.1:4010, 127.0.0.1:4020, 127.0.0.1:4030, 127.0.0.1:4040, and 127.0.0.1:4050
+Docker Labs on 127.0.0.1:4010 through 127.0.0.1:4060
 ```
 
 For now, both the portal and the lab are designed to run locally on the learner's laptop. Later, the portal can be hosted, but the vulnerable labs should still run locally or inside a controlled cyber range/VM.
@@ -66,6 +67,7 @@ http://127.0.0.1:4020
 http://127.0.0.1:4030
 http://127.0.0.1:4040
 http://127.0.0.1:4050
+http://127.0.0.1:4060
 ```
 
 Health endpoints:
@@ -76,6 +78,7 @@ http://127.0.0.1:4020/health
 http://127.0.0.1:4030/health
 http://127.0.0.1:4040/health
 http://127.0.0.1:4050/health
+http://127.0.0.1:4060/health
 ```
 
 Trace endpoints:
@@ -86,12 +89,14 @@ http://127.0.0.1:4020/traces
 http://127.0.0.1:4030/traces
 http://127.0.0.1:4040/traces
 http://127.0.0.1:4050/traces
+http://127.0.0.1:4060/traces
 ```
 
 Current demo flags:
 
 ```text
 VM{sql_auth_bypass}
+VM{stored_xss_needs_output_encoding}
 VM{api_bola_idor_mastered}
 VM{jwt_claims_need_verification}
 VM{rate_limits_need_stable_keys}
@@ -132,12 +137,12 @@ npm run build
 - Frontend: Next.js, React, TypeScript
 - UI: Tailwind CSS, lucide-react icons
 - Labs: Docker Compose
-- Lab runtimes: Python HTTP servers, SQLite for SQLi lab, in-memory API records for API labs
+- Lab runtimes: Python HTTP servers, SQLite for SQLi lab, in-memory records for Web/API labs
 
 Planned additions:
 
 - Backend persistence for users and progress
-- More Web/API labs such as stored XSS and secure comparison coverage
+- More Web/API labs and secure comparison coverage
 - AI Mentor integration with hint guardrails
 - Admin dashboard
 - Final demo and deployment guide
