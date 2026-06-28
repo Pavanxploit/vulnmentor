@@ -33,7 +33,7 @@ Status: in progress
 - [x] IDOR / Broken Object Level Authorization
 - [x] JWT tampering
 - [x] Rate limit bypass
-- [ ] Excessive data exposure
+- [x] Excessive data exposure
 - [ ] Stored XSS
 - [x] Secure version comparison for API BOLA lab
 - [ ] Secure version for every vulnerable lab

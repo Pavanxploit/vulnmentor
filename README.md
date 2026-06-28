@@ -11,6 +11,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Docker-based API Broken Authorization / IDOR lab
 - Docker-based API JWT tampering lab
 - Docker-based API Rate Limit Bypass lab
+- Docker-based API Excessive Data Exposure lab
 - Lab health check from the portal
 - Runtime trace view from the lab
 - Flag submission workflow
@@ -31,7 +32,7 @@ VulnMentor Portal
     |
     | checks health/traces
     v
-Docker Labs on 127.0.0.1:4010, 127.0.0.1:4020, 127.0.0.1:4030, and 127.0.0.1:4040
+Docker Labs on 127.0.0.1:4010, 127.0.0.1:4020, 127.0.0.1:4030, 127.0.0.1:4040, and 127.0.0.1:4050
 ```
 
 For now, both the portal and the lab are designed to run locally on the learner's laptop. Later, the portal can be hosted, but the vulnerable labs should still run locally or inside a controlled cyber range/VM.
@@ -64,6 +65,7 @@ http://127.0.0.1:4010
 http://127.0.0.1:4020
 http://127.0.0.1:4030
 http://127.0.0.1:4040
+http://127.0.0.1:4050
 ```
 
 Health endpoints:
@@ -73,6 +75,7 @@ http://127.0.0.1:4010/health
 http://127.0.0.1:4020/health
 http://127.0.0.1:4030/health
 http://127.0.0.1:4040/health
+http://127.0.0.1:4050/health
 ```
 
 Trace endpoints:
@@ -82,6 +85,7 @@ http://127.0.0.1:4010/traces
 http://127.0.0.1:4020/traces
 http://127.0.0.1:4030/traces
 http://127.0.0.1:4040/traces
+http://127.0.0.1:4050/traces
 ```
 
 Current demo flags:
@@ -91,6 +95,7 @@ VM{sql_auth_bypass}
 VM{api_bola_idor_mastered}
 VM{jwt_claims_need_verification}
 VM{rate_limits_need_stable_keys}
+VM{return_only_required_fields}
 ```
 
 ## Safe Usage Rules
@@ -132,7 +137,7 @@ npm run build
 Planned additions:
 
 - Backend persistence for users and progress
-- More Web/API labs such as excessive data exposure and XSS
+- More Web/API labs such as stored XSS and secure comparison coverage
 - AI Mentor integration with hint guardrails
 - Admin dashboard
 - Final demo and deployment guide

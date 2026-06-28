@@ -359,6 +359,84 @@ if (tooManyAttempts(limitKey)) {
 return verifyOtp(code);`,
     },
   },
+  {
+    id: "api-excessive-data-exposure",
+    title: "Excessive Data Exposure",
+    category: "API Security",
+    difficulty: "Easy",
+    status: "available",
+    time: "25 min",
+    points: 130,
+    verifierId: "api-excessive-data-exposure",
+    lab: {
+      baseUrl: "http://127.0.0.1:4050",
+      healthUrl: "http://127.0.0.1:4050/health",
+      tracesUrl: "http://127.0.0.1:4050/traces",
+    },
+    summary:
+      "A profile API returns the full database record, exposing internal and sensitive fields that the client does not need.",
+    skills: [
+      "OWASP API3 BOPLA",
+      "Data Minimization",
+      "Response Filtering",
+    ],
+    workflow: ["Request Profile", "Inspect JSON", "Compare Secure Response", "Capture Flag"],
+    hints: [
+      {
+        title: "Hint 1",
+        body: "Do not only look at what the browser page displays. Inspect the raw JSON returned by the API.",
+      },
+      {
+        title: "Hint 2",
+        body: "Ask which fields the client actually needs to render the profile screen.",
+      },
+      {
+        title: "Hint 3",
+        body: "Compare the vulnerable profile endpoint with the secure endpoint and look for fields removed from the response.",
+      },
+    ],
+    logs: [
+      "14:02:10 GET /api/profile status=200 user=user-100 fields=14 sensitive=passwordResetToken,mfaBackupCodes,flag",
+      "14:03:22 GET /secure/api/profile status=200 user=user-100 fields=7 sensitive=0",
+      "14:04:15 DATA_EXPOSURE profile contained server-only properties",
+    ],
+    rootCause:
+      "The API serializes and returns the entire user record from storage. Authorization may be valid, but object properties still need authorization and filtering. The server should only return the fields required for the client workflow.",
+    mitigation: [
+      "Use response DTOs or serializers that explicitly allowlist safe fields.",
+      "Never return raw database objects directly from API handlers.",
+      "Classify fields as public, internal, secret, or regulated before designing responses.",
+      "Write tests that assert sensitive fields never appear in client-facing JSON.",
+      "Log and review endpoints that return unusually large or sensitive response bodies.",
+    ],
+    impact:
+      "Sensitive data such as reset tokens, backup codes, internal risk scores, feature flags, billing references, or flags can leak to normal authenticated users.",
+    console: [
+      '$ curl "http://127.0.0.1:4050/api/profile?token=student-token"',
+      '$ curl "http://127.0.0.1:4050/secure/api/profile?token=student-token"',
+      "$ compare the field lists and identify server-only data",
+      "Monitor sensitive field exposure in attack traces...",
+    ],
+    code: {
+      vulnerable: `const user = await db.users.findById(userId);
+
+// Returns every stored property, including server-only fields.
+return response.json({ profile: user });`,
+      secure: `const user = await db.users.findById(userId);
+
+return response.json({
+  profile: {
+    id: user.id,
+    displayName: user.displayName,
+    email: user.email,
+    role: user.role,
+    department: user.department,
+    avatar: user.avatar,
+    joinedAt: user.joinedAt,
+  },
+});`,
+    },
+  },
 ];
 
 export const activeChallenge = challenges.find(

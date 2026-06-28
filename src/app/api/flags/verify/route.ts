@@ -5,6 +5,7 @@ const flagsByChallenge = new Map<string, string>([
   ["api-broken-auth", "VM{api_bola_idor_mastered}"],
   ["api-jwt-tampering", "VM{jwt_claims_need_verification}"],
   ["api-rate-limit-bypass", "VM{rate_limits_need_stable_keys}"],
+  ["api-excessive-data-exposure", "VM{return_only_required_fields}"],
 ]);
 
 export async function POST(request: NextRequest) {

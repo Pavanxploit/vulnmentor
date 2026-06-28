@@ -33,6 +33,7 @@ SQL Injection lab: http://127.0.0.1:4010
 API BOLA / IDOR lab: http://127.0.0.1:4020
 API JWT tampering lab: http://127.0.0.1:4030
 API Rate Limit Bypass lab: http://127.0.0.1:4040
+API Excessive Data Exposure lab: http://127.0.0.1:4050
 ```
 
 Check health:
@@ -42,6 +43,7 @@ curl http://127.0.0.1:4010/health
 curl http://127.0.0.1:4020/health
 curl http://127.0.0.1:4030/health
 curl http://127.0.0.1:4040/health
+curl http://127.0.0.1:4050/health
 ```
 
 All should return:

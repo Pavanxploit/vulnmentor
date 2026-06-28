@@ -30,3 +30,11 @@ services:
     ports:
       - "4040:4040"
     restart: unless-stopped
+
+  api-excessive-data-exposure:
+    build:
+      context: ./labs/api-excessive-data-exposure
+    container_name: vulnmentor-api-data-exposure-lab
+    ports:
+      - "4050:4050"
+    restart: unless-stopped

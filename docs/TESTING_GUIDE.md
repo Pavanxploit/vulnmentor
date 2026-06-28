@@ -19,7 +19,7 @@ Check:
 
 - Page loads without console errors.
 - Labs appear in the sidebar.
-- SQL Injection, API Broken Authorization, JWT Tampering, and Rate Limit Bypass labs open.
+- SQL Injection, API Broken Authorization, JWT Tampering, Rate Limit Bypass, and Excessive Data Exposure labs open.
 - Hints reveal one by one.
 - Flag form accepts input.
 - Brief, Attack, Root Cause, and Defense tabs work.
@@ -37,6 +37,7 @@ http://127.0.0.1:4010
 http://127.0.0.1:4020
 http://127.0.0.1:4030
 http://127.0.0.1:4040
+http://127.0.0.1:4050
 ```
 
 Check SQL Injection lab:
@@ -77,6 +78,16 @@ Check API Rate Limit Bypass lab:
 - Secure OTP endpoint keeps the limit tied to the protected account.
 - `/health` returns `ok`.
 - `/traces` returns recent OTP attempts.
+
+Check API Excessive Data Exposure lab:
+
+- Home page loads.
+- `/api/profile?token=student-token` returns a profile with sensitive fields.
+- `/secure/api/profile?token=student-token` returns only public profile fields.
+- Vulnerable response contains the flag.
+- Secure response does not expose server-only fields.
+- `/health` returns `ok`.
+- `/traces` returns recent profile API attempts.
 
 ## 3. Check Portal To Lab Connection
 
