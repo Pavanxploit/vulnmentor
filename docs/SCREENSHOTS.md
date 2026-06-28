@@ -6,10 +6,10 @@ The `screenshots` folder contains GitHub-ready images for the README, project re
 
 | File | Purpose |
 | --- | --- |
-| `screenshots/01-portal-overview.png` | Main VulnMentor portal and lab catalogue |
-| `screenshots/02-report-dashboard.png` | Student progress and export-ready reporting view |
-| `screenshots/03-sqli-lab.png` | Live SQL Injection web lab |
-| `screenshots/04-stored-xss-lab.png` | Live Stored XSS web lab |
+| `screenshots/01-portal-overview.png` | Academy homepage hero and learning-path positioning |
+| `screenshots/02-report-dashboard.png` | Dashboard with sidebar, progress, lab grid, and activity |
+| `screenshots/03-sqli-lab.png` | SQL Injection lab detail page |
+| `screenshots/04-stored-xss-lab.png` | Stored XSS lab detail page |
 
 ## Regenerate Screenshots
 
@@ -40,4 +40,4 @@ $env:BROWSER_EXECUTABLE="C:\Path\To\Browser\browser.exe"
 
 ## Presentation Tip
 
-Use the portal overview and report dashboard screenshots in the first few slides. Use lab screenshots only when explaining how the sandbox works internally.
+Use the homepage and dashboard screenshots in the first few slides. Use lab detail screenshots when explaining how a student starts a lab, requests hints, submits a flag, and unlocks the explanation.

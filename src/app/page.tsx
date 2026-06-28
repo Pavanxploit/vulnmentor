@@ -1,5 +1,5 @@
-import { VulnMentorApp } from "@/components/vulnmentor-app";
+import { LandingPage } from "@/components/academy/landing-page";
 
 export default function Home() {
-  return <VulnMentorApp />;
+  return <LandingPage />;
 }

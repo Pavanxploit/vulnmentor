@@ -67,6 +67,14 @@ Status: complete
 - [ ] Final report and PPT updates
 - [ ] Optional hosted frontend
 
+## Phase 7: Academy Website Experience
+
+- [x] Mark current working project with a backup Git tag
+- [x] Create original dark cybersecurity homepage
+- [x] Add dashboard with left sidebar, learning paths, labs, progress, notes, and settings sections
+- [x] Add dynamic lab detail pages with scenario, target URL, hints, flag submission, and post-completion explanation
+- [x] Refresh screenshots for the new academy UI
+
 ## Remaining Focus Areas
 
 - Backend login and database-backed student progress

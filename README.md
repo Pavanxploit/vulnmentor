@@ -16,9 +16,9 @@ This repository is intentionally educational. Labs must run only in the controll
 
 ## Screenshots
 
-![VulnMentor portal overview](./screenshots/01-portal-overview.png)
+![VulnMentor academy homepage](./screenshots/01-portal-overview.png)
 
-![VulnMentor report dashboard](./screenshots/02-report-dashboard.png)
+![VulnMentor academy dashboard](./screenshots/02-report-dashboard.png)
 
 ## Current Build
 
@@ -74,7 +74,11 @@ Open:
 
 ```text
 http://localhost:3000
+http://localhost:3000/dashboard
+http://localhost:3000/labs/web-sqli-login
 ```
+
+The stable pre-redesign version is marked in Git as `backup-before-academy-ui-bfbe0f5`.
 
 ## Run The Labs
 

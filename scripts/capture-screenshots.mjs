@@ -7,9 +7,11 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const screenshotDir = path.join(rootDir, "screenshots");
-const defaultWidth = 1440;
-const defaultHeight = 1100;
+const screenshotDir = process.env.SCREENSHOT_DIR
+  ? path.resolve(process.env.SCREENSHOT_DIR)
+  : path.join(rootDir, "screenshots");
+const defaultWidth = Number(process.env.SCREENSHOT_WIDTH ?? 1440);
+const defaultHeight = Number(process.env.SCREENSHOT_HEIGHT ?? 1100);
 
 const browserCandidates = [
   process.env.BROWSER_EXECUTABLE,
@@ -254,28 +256,22 @@ const screenshots = [
   {
     file: "01-portal-overview.png",
     url: "http://localhost:3000",
-    expectText: "Lab is online",
+    expectText: "Learn Cybersecurity with Safe Vulnerable Labs",
   },
   {
     file: "02-report-dashboard.png",
-    url: "http://localhost:3000",
-    action: `(() => {
-      const report = Array.from(document.querySelectorAll("button"))
-        .find((button) => button.textContent.trim() === "Report");
-      if (!report) throw new Error("Report button not found");
-      report.click();
-    })()`,
-    expectText: "Export",
+    url: "http://localhost:3000/dashboard",
+    expectText: "Practice modules",
   },
   {
     file: "03-sqli-lab.png",
-    url: "http://127.0.0.1:4010",
-    expectText: "SQL Injection",
+    url: "http://localhost:3000/labs/web-sqli-login",
+    expectText: "Submit Flag",
   },
   {
     file: "04-stored-xss-lab.png",
-    url: "http://127.0.0.1:4060",
-    expectText: "XSS",
+    url: "http://localhost:3000/labs/web-xss-comment",
+    expectText: "Stored XSS",
   },
 ];
 
