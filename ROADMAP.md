@@ -4,7 +4,7 @@ This roadmap tracks the step-by-step build plan for the major project.
 
 ## Phase 1: Foundation
 
-Status: in progress
+Status: complete
 
 - [x] Create Next.js learning portal
 - [x] Add first Docker-based SQL Injection lab
@@ -15,7 +15,7 @@ Status: in progress
 - [x] Add deployment model documentation
 - [x] Add testing guide
 - [x] Connect lab health and runtime traces in the portal
-- [ ] Add polished project screenshots
+- [x] Add polished project screenshots
 
 ## Phase 2: Real Learning Workflow
 
@@ -59,12 +59,23 @@ Status: in progress
 - [x] Public-safe README
 - [x] Demo script
 - [ ] Recorded demo video
-- [ ] Screenshots
+- [x] Screenshots
+- [x] Screenshot capture script
 - [x] Architecture diagram
 - [x] Portfolio showcase notes
 - [x] Final presentation checklist
 - [ ] Final report and PPT updates
 - [ ] Optional hosted frontend
+
+## Remaining Focus Areas
+
+- Backend login and database-backed student progress
+- Secure comparison coverage for every lab
+- Admin challenge management
+- Recorded demo video
+- Final report and PPT updates
+- Optional hosted safe frontend
+- Stretch goals after the main project is review-ready
 
 ## Stretch Goals
 

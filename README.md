@@ -14,6 +14,12 @@ This repository is intentionally educational. Labs must run only in the controll
 - Admin-style progress report with JSON/CSV export
 - Public-safe documentation for college demos and portfolio review
 
+## Screenshots
+
+![VulnMentor portal overview](./screenshots/01-portal-overview.png)
+
+![VulnMentor report dashboard](./screenshots/02-report-dashboard.png)
+
 ## Current Build
 
 - Next.js learning portal
@@ -151,6 +157,7 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 - [Demo script](./docs/DEMO_SCRIPT.md)
 - [Portfolio showcase notes](./docs/PORTFOLIO_SHOWCASE.md)
 - [Final presentation checklist](./docs/FINAL_PRESENTATION_CHECKLIST.md)
+- [Screenshots](./docs/SCREENSHOTS.md)
 - [Testing guide](./docs/TESTING_GUIDE.md)
 - [Roadmap](./ROADMAP.md)
 
@@ -159,6 +166,7 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 ```bash
 npm run lint
 npm run build
+npm run screenshots
 ```
 
 ## Tech Stack
