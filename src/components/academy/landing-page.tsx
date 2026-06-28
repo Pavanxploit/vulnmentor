@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Boxes, BrainCircuit, CheckCircle2, Flag, KeyRound, Network, ShieldCheck, TerminalSquare, Trophy } from "lucide-react";
 import { AcademyTopNav, Badge, PrimaryLink, SecondaryLink, SectionHeading } from "./academy-ui";
@@ -50,20 +49,12 @@ export function LandingPage() {
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <AcademyTopNav />
 
-      <section className="relative flex min-h-[720px] items-center overflow-hidden border-b border-white/10">
-        <Image
-          src="/vulnmentor-dashboard-preview.png"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-right-top opacity-45"
-        />
-        <div className="absolute inset-0 bg-slate-950/62" />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
-          <div className="max-w-4xl">
+      <section className="relative flex min-h-[560px] items-center overflow-hidden border-b border-white/10 bg-slate-950">
+        <HeroLabScene />
+        <div className="relative mx-auto flex w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
             <Badge tone="green">Local-first cyber academy</Badge>
-            <h1 className="mt-6 max-w-[10ch] text-4xl font-semibold leading-tight text-white sm:max-w-4xl sm:text-5xl md:text-7xl">
+            <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
               Learn Cybersecurity with Safe Vulnerable Labs
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg sm:leading-8">
@@ -74,30 +65,19 @@ export function LandingPage() {
               <PrimaryLink href="/dashboard">Start Learning</PrimaryLink>
               <SecondaryLink href="/dashboard#labs">View Labs</SecondaryLink>
             </div>
-          </div>
 
-          <div className="grid content-end gap-3 lg:justify-self-end">
-            <div className="rounded-lg border border-white/10 bg-slate-950/80 p-4 shadow-2xl">
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                <div>
-                  <p className="text-sm font-semibold text-white">Current training build</p>
-                  <p className="text-xs text-slate-400">Web + API CTF sandbox</p>
-                </div>
-                <Badge tone="cyan">6 labs</Badge>
+            <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">
+              <div className="rounded-lg border border-white/10 bg-slate-900/80 p-4">
+                <p className="text-2xl font-semibold text-white">6</p>
+                <p className="mt-1 text-xs uppercase text-slate-400">labs</p>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center sm:gap-3">
-                <div className="rounded-md bg-white/5 p-3">
-                  <p className="text-xl font-semibold text-white sm:text-2xl">880</p>
-                  <p className="text-xs text-slate-400">points</p>
-                </div>
-                <div className="rounded-md bg-white/5 p-3">
-                  <p className="text-xl font-semibold text-white sm:text-2xl">2</p>
-                  <p className="text-xs text-slate-400">tracks</p>
-                </div>
-                <div className="rounded-md bg-white/5 p-3">
-                  <p className="text-xl font-semibold text-white sm:text-2xl">100%</p>
-                  <p className="text-xs text-slate-400">local</p>
-                </div>
+              <div className="rounded-lg border border-white/10 bg-slate-900/80 p-4">
+                <p className="text-2xl font-semibold text-white">2</p>
+                <p className="mt-1 text-xs uppercase text-slate-400">tracks</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-slate-900/80 p-4">
+                <p className="text-2xl font-semibold text-white">100%</p>
+                <p className="mt-1 text-xs uppercase text-slate-400">local</p>
               </div>
             </div>
           </div>
@@ -178,5 +158,43 @@ export function LandingPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function HeroLabScene() {
+  const nodes = [
+    { icon: TerminalSquare, className: "right-[30%] top-[18%]", tone: "text-cyan-100" },
+    { icon: ShieldCheck, className: "right-[12%] top-[33%]", tone: "text-emerald-100" },
+    { icon: KeyRound, className: "right-[42%] top-[47%]", tone: "text-amber-100" },
+    { icon: Flag, className: "right-[19%] top-[64%]", tone: "text-red-100" },
+    { icon: Network, className: "right-[50%] top-[72%]", tone: "text-cyan-100" },
+  ];
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(125,211,252,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(125,211,252,0.18)_1px,transparent_1px)] [background-size:56px_56px]" />
+      <div className="absolute inset-y-0 right-0 hidden w-[62%] md:block">
+        <div className="absolute left-[18%] top-[22%] h-px w-[48%] rotate-12 bg-cyan-300/30" />
+        <div className="absolute left-[28%] top-[52%] h-px w-[42%] -rotate-12 bg-emerald-300/25" />
+        <div className="absolute left-[38%] top-[34%] h-[42%] w-px rotate-[18deg] bg-white/15" />
+        <div className="absolute right-[8%] top-[12%] h-[76%] w-[78%] rounded-lg border border-cyan-300/15 bg-slate-900/30" />
+        <div className="absolute right-[18%] top-[25%] h-[46%] w-[46%] rounded-lg border border-emerald-300/15 bg-slate-950/45" />
+        {nodes.map((node, index) => (
+          <div
+            key={index}
+            className={`absolute flex h-16 w-16 items-center justify-center rounded-lg border border-white/15 bg-slate-950/85 shadow-2xl ${node.className}`}
+          >
+            <node.icon className={`h-7 w-7 ${node.tone}`} />
+          </div>
+        ))}
+        <div className="absolute right-[8%] top-[78%] grid w-[260px] grid-cols-6 gap-2 opacity-70">
+          {Array.from({ length: 18 }).map((_, index) => (
+            <span key={index} className="h-2 rounded-sm bg-cyan-200/25" />
+          ))}
+        </div>
+      </div>
+      <div className="absolute inset-0 bg-slate-950/40" />
+      <div className="absolute inset-y-0 left-0 w-full bg-slate-950/70 md:w-[62%]" />
+    </div>
   );
 }

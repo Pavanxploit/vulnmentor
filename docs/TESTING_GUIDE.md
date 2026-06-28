@@ -134,9 +134,9 @@ npm run build
 
 Both commands should pass.
 
-## 5. What To Report After Testing
+## 5. What To Record After Testing
 
-Tell Codex:
+Write down:
 
 - What command failed, if any.
 - What page looked confusing.
