@@ -71,7 +71,7 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <PrimaryLink href="/register">Start Learning</PrimaryLink>
-              <SecondaryLink href="/dashboard#labs">View Labs</SecondaryLink>
+              <SecondaryLink href="/labs">View Labs</SecondaryLink>
             </div>
 
             <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">

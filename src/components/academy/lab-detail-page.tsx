@@ -77,7 +77,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <AcademyTopNav />
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <Link href="/dashboard#labs" className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 hover:text-cyan-100">
+        <Link href="/labs" className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 hover:text-cyan-100">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to labs
         </Link>

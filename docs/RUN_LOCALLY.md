@@ -69,6 +69,12 @@ Open:
 http://127.0.0.1:3000
 http://127.0.0.1:3000/register
 http://127.0.0.1:3000/login
+http://127.0.0.1:3000/dashboard
+http://127.0.0.1:3000/learning-paths
+http://127.0.0.1:3000/labs
+http://127.0.0.1:3000/progress
+http://127.0.0.1:3000/notes
+http://127.0.0.1:3000/settings
 http://127.0.0.1:3000/guide
 ```
 

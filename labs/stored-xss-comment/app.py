@@ -87,28 +87,31 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
   <title>VulnMentor Stored XSS Lab</title>
   <style>
     :root {{
-      --ink: #111713;
-      --muted: #5f6b63;
-      --line: #dfe5dd;
-      --panel: #ffffff;
-      --wash: #f5f7f2;
-      --accent: #0f6b53;
-      --warn: #9c4f10;
-      --danger: #9f3030;
-      --code: #0e1410;
+      --ink: #f8fafc;
+      --muted: #a8b3c7;
+      --line: rgba(255, 255, 255, 0.12);
+      --panel: rgba(15, 23, 42, 0.92);
+      --wash: #020617;
+      --accent: #34d399;
+      --warn: #fbbf24;
+      --danger: #fca5a5;
+      --code: #020617;
     }}
     * {{
       box-sizing: border-box;
     }}
     body {{
       margin: 0;
-      background: var(--wash);
+      background:
+        radial-gradient(circle at top left, rgba(20, 184, 166, 0.16), transparent 34rem),
+        linear-gradient(135deg, #020617 0%, #08111f 52%, #020617 100%);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
     }}
     header {{
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(2, 6, 23, 0.88);
+      backdrop-filter: blur(16px);
     }}
     .bar {{
       max-width: 1120px;
@@ -125,9 +128,9 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       letter-spacing: 0.02em;
     }}
     .status {{
-      border: 1px solid #b9d9cd;
+      border: 1px solid rgba(52, 211, 153, 0.35);
       border-radius: 999px;
-      background: #eef8f3;
+      background: rgba(52, 211, 153, 0.1);
       color: var(--accent);
       padding: 6px 10px;
       font-size: 12px;
@@ -153,7 +156,7 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 1px 2px rgba(20, 24, 21, 0.06);
+      box-shadow: 0 20px 60px rgba(2, 6, 23, 0.28);
     }}
     h1 {{
       margin: 0;
@@ -170,7 +173,7 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       line-height: 1.6;
     }}
     a {{
-      color: #0b5d4c;
+      color: #67e8f9;
       font-weight: 700;
       text-decoration: none;
     }}
@@ -183,12 +186,17 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
     input,
     textarea {{
       width: 100%;
-      border: 1px solid #cbd4cc;
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 6px;
-      background: #fff;
+      background: #020617;
       color: var(--ink);
       padding: 12px;
       font: inherit;
+      outline: none;
+    }}
+    input:focus,
+    textarea:focus {{
+      border-color: rgba(103, 232, 249, 0.72);
     }}
     textarea {{
       min-height: 132px;
@@ -202,8 +210,8 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       min-height: 44px;
       border: 0;
       border-radius: 6px;
-      background: #111713;
-      color: #fff;
+      background: #34d399;
+      color: #020617;
       padding: 0 16px;
       font-weight: 800;
       cursor: pointer;
@@ -215,8 +223,8 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       margin-top: 16px;
     }}
     .button.secondary {{
-      border: 1px solid #cbd4cc;
-      background: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: #0f172a;
       color: var(--ink);
     }}
     code,
@@ -226,8 +234,9 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
     pre {{
       overflow: auto;
       background: var(--code);
-      color: #d7ded8;
+      color: #d7fbe8;
       border-radius: 6px;
+      border: 1px solid var(--line);
       padding: 14px;
       line-height: 1.5;
       margin: 0;
@@ -237,11 +246,11 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
     }}
     .endpoint {{
       display: block;
-      border: 1px solid #d7e3ef;
+      border: 1px solid rgba(103, 232, 249, 0.28);
       border-radius: 6px;
-      background: #f6fbff;
+      background: rgba(8, 47, 73, 0.55);
       padding: 10px;
-      color: #224a69;
+      color: #a5f3fc;
       font-size: 13px;
       font-weight: 700;
       margin-top: 8px;
@@ -249,28 +258,28 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
     }}
     .notice {{
       margin-top: 14px;
-      border: 1px solid #e1e2da;
+      border: 1px solid var(--line);
       border-radius: 6px;
       padding: 12px;
       line-height: 1.5;
       color: var(--muted);
     }}
     .notice.warn {{
-      border-color: #f0d1a8;
-      background: #fff8ed;
+      border-color: rgba(251, 191, 36, 0.34);
+      background: rgba(251, 191, 36, 0.11);
       color: var(--warn);
     }}
     .notice.bad {{
-      border-color: #efcaca;
-      background: #fff3f3;
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(248, 113, 113, 0.12);
       color: var(--danger);
     }}
     .comment {{
-      border: 1px solid #e2e7df;
+      border: 1px solid var(--line);
       border-radius: 6px;
       padding: 14px;
       margin-top: 10px;
-      background: #fcfdf9;
+      background: rgba(2, 6, 23, 0.7);
     }}
     .comment-meta {{
       display: flex;
@@ -285,7 +294,7 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       word-break: break-word;
     }}
     .empty {{
-      border: 1px dashed #ccd5cc;
+      border: 1px dashed rgba(255, 255, 255, 0.18);
       border-radius: 6px;
       color: var(--muted);
       padding: 14px;
@@ -299,7 +308,7 @@ def page(content, status_text="Local isolated web lab : stored XSS mode"):
       display: flex;
       justify-content: space-between;
       gap: 16px;
-      border-top: 1px solid #eceee8;
+      border-top: 1px solid var(--line);
       padding-top: 10px;
       color: var(--muted);
       font-size: 13px;

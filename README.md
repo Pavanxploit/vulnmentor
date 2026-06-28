@@ -43,7 +43,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Email/password login and registration
 - HTTP-only session cookie with production secure-cookie mode
 - Student and instructor roles
-- Protected dashboard, labs, flag submission, and guide console routes
+- Protected dashboard, learning paths, labs, progress, notes, settings, flag submission, and guide console routes
 - Backend-backed account progress using local JSON database storage
 - Guide Console challenge management
 - Instructor-only report/guide tooling
@@ -85,6 +85,11 @@ http://localhost:3000
 http://localhost:3000/register
 http://localhost:3000/login
 http://localhost:3000/dashboard
+http://localhost:3000/learning-paths
+http://localhost:3000/labs
+http://localhost:3000/progress
+http://localhost:3000/notes
+http://localhost:3000/settings
 http://localhost:3000/labs/web-sqli-login
 http://localhost:3000/guide
 ```

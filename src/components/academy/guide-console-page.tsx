@@ -66,7 +66,7 @@ export function GuideConsolePage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto grid max-w-[1500px] min-w-0 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
-        <DashboardSidebar showGuide />
+        <DashboardSidebar activeHref="/guide" showGuide />
 
         <section className="min-w-0 space-y-5">
           <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-5 md:flex-row md:items-center md:justify-between">
@@ -85,7 +85,7 @@ export function GuideConsolePage() {
                 Dashboard
               </Link>
               <Link
-                href={selectedChallenge ? `/labs/${selectedChallenge.id}` : "/dashboard#labs"}
+                href={selectedChallenge ? `/labs/${selectedChallenge.id}` : "/labs"}
                 className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
               >
                 Open Selected Lab

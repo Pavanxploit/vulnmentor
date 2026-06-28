@@ -303,20 +303,25 @@ const screenshots = [
   {
     file: "02-report-dashboard.png",
     url: `${portalUrl}/dashboard`,
-    expectText: "Practice modules",
+    expectText: "Workspace pages",
   },
   {
-    file: "03-sqli-lab.png",
+    file: "03-labs-directory.png",
+    url: `${portalUrl}/labs`,
+    expectText: "Browse Practical Labs",
+  },
+  {
+    file: "04-sqli-lab.png",
     url: `${portalUrl}/labs/web-sqli-login`,
     expectText: "Submit Flag",
   },
   {
-    file: "04-stored-xss-lab.png",
+    file: "05-stored-xss-lab.png",
     url: `${portalUrl}/labs/web-xss-comment`,
     expectText: "Stored XSS",
   },
   {
-    file: "05-guide-console.png",
+    file: "06-guide-console.png",
     url: `${portalUrl}/guide`,
     expectText: "Instructor Guide Console",
   },

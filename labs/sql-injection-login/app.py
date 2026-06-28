@@ -44,24 +44,27 @@ def page(content):
   <title>VulnMentor SQLi Lab</title>
   <style>
     :root {{
-      --ink: #121614;
-      --muted: #66716b;
-      --line: #dfe3db;
-      --panel: #ffffff;
-      --wash: #f5f6f1;
-      --accent: #0f6b53;
-      --danger: #a03434;
-      --code: #101411;
+      --ink: #f8fafc;
+      --muted: #a8b3c7;
+      --line: rgba(255, 255, 255, 0.12);
+      --panel: rgba(15, 23, 42, 0.92);
+      --wash: #020617;
+      --accent: #34d399;
+      --danger: #fca5a5;
+      --code: #020617;
     }}
     body {{
       margin: 0;
-      background: var(--wash);
+      background:
+        radial-gradient(circle at top left, rgba(20, 184, 166, 0.16), transparent 34rem),
+        linear-gradient(135deg, #020617 0%, #08111f 52%, #020617 100%);
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
     }}
     header {{
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.86);
+      background: rgba(2, 6, 23, 0.88);
+      backdrop-filter: blur(16px);
     }}
     .bar {{
       max-width: 1080px;
@@ -78,9 +81,9 @@ def page(content):
       letter-spacing: 0.02em;
     }}
     .status {{
-      border: 1px solid #b9d9cd;
+      border: 1px solid rgba(52, 211, 153, 0.35);
       border-radius: 999px;
-      background: #eef8f3;
+      background: rgba(52, 211, 153, 0.1);
       color: var(--accent);
       padding: 6px 10px;
       font-size: 12px;
@@ -115,7 +118,7 @@ def page(content):
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 1px 2px rgba(20, 24, 21, 0.06);
+      box-shadow: 0 20px 60px rgba(2, 6, 23, 0.28);
     }}
     .grid {{
       display: grid;
@@ -132,7 +135,7 @@ def page(content):
       display: flex;
       justify-content: space-between;
       gap: 16px;
-      border-top: 1px solid #eceee8;
+      border-top: 1px solid var(--line);
       padding-top: 10px;
       color: var(--muted);
       font-size: 13px;
@@ -150,19 +153,24 @@ def page(content):
       box-sizing: border-box;
       width: 100%;
       height: 44px;
-      border: 1px solid #cdd1c9;
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 6px;
       padding: 0 12px;
       font: inherit;
-      background: #fff;
+      background: #020617;
+      color: var(--ink);
+      outline: none;
+    }}
+    input:focus {{
+      border-color: rgba(103, 232, 249, 0.72);
     }}
     button {{
       margin-top: 16px;
       height: 44px;
       border: 0;
       border-radius: 6px;
-      background: var(--ink);
-      color: white;
+      background: #34d399;
+      color: #020617;
       padding: 0 18px;
       font-weight: 700;
       cursor: pointer;
@@ -173,26 +181,27 @@ def page(content):
     pre {{
       overflow: auto;
       background: var(--code);
-      color: #d7ded8;
+      color: #d7fbe8;
       border-radius: 6px;
+      border: 1px solid var(--line);
       padding: 14px;
       line-height: 1.5;
       min-height: 148px;
       margin: 0;
     }}
     .ok {{
-      border-color: #b7e2cd;
-      background: #effaf4;
-      color: #0f6b53;
+      border-color: rgba(52, 211, 153, 0.32);
+      background: rgba(52, 211, 153, 0.1);
+      color: #bbf7d0;
     }}
     .bad {{
-      border-color: #efcaca;
-      background: #fff3f3;
-      color: #a03434;
+      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(248, 113, 113, 0.12);
+      color: #fecaca;
     }}
     .notice {{
       margin-top: 16px;
-      border: 1px solid #e1e2da;
+      border: 1px solid var(--line);
       border-radius: 6px;
       padding: 12px;
       line-height: 1.5;
@@ -212,11 +221,11 @@ def page(content):
     }}
     .endpoint {{
       display: inline-flex;
-      border: 1px solid #d7e3ef;
+      border: 1px solid rgba(103, 232, 249, 0.28);
       border-radius: 6px;
-      background: #f6fbff;
+      background: rgba(8, 47, 73, 0.55);
       padding: 4px 8px;
-      color: #224a69;
+      color: #a5f3fc;
       font-size: 12px;
       font-weight: 700;
       margin-right: 6px;

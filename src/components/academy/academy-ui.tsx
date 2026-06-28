@@ -8,12 +8,12 @@ export function cn(...classes: Array<string | false | null | undefined>) {
 
 export const sidebarItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Learning Paths", href: "/dashboard#learning-paths", icon: Route },
-  { label: "Labs", href: "/dashboard#labs", icon: FlaskConical },
-  { label: "Progress", href: "/dashboard#progress", icon: Trophy },
+  { label: "Learning Paths", href: "/learning-paths", icon: Route },
+  { label: "Labs", href: "/labs", icon: FlaskConical },
+  { label: "Progress", href: "/progress", icon: Trophy },
   { label: "Guide Console", href: "/guide", icon: ClipboardCheck, guideOnly: true },
-  { label: "Notes", href: "/dashboard#notes", icon: NotebookPen },
-  { label: "Settings", href: "/dashboard#settings", icon: Settings },
+  { label: "Notes", href: "/notes", icon: NotebookPen },
+  { label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 
 type BadgeTone = "cyan" | "green" | "amber" | "red" | "slate";
@@ -132,10 +132,10 @@ export function AcademyTopNav() {
           <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/dashboard">
             Dashboard
           </Link>
-          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/dashboard#learning-paths">
+          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/learning-paths">
             Learning Paths
           </Link>
-          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/dashboard#labs">
+          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/labs">
             Labs
           </Link>
         </nav>
@@ -151,7 +151,52 @@ export function AcademyTopNav() {
   );
 }
 
-export function DashboardSidebar({ showGuide = false }: { showGuide?: boolean }) {
+export function WorkspaceFrame({
+  action,
+  activeHref,
+  badge,
+  badgeTone = "cyan",
+  body,
+  children,
+  showGuide = false,
+  title,
+}: {
+  action?: React.ReactNode;
+  activeHref: string;
+  badge: string;
+  badgeTone?: BadgeTone;
+  body: string;
+  children: React.ReactNode;
+  showGuide?: boolean;
+  title: string;
+}) {
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto grid max-w-[1500px] min-w-0 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[260px_1fr] lg:px-8">
+        <DashboardSidebar activeHref={activeHref} showGuide={showGuide} />
+        <section className="min-w-0 space-y-5">
+          <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-5 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <Badge tone={badgeTone}>{badge}</Badge>
+              <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">{title}</h1>
+              <p className="mt-2 max-w-3xl break-words text-sm leading-6 text-slate-300">{body}</p>
+            </div>
+            {action ? <div className="shrink-0">{action}</div> : null}
+          </div>
+          {children}
+        </section>
+      </div>
+    </main>
+  );
+}
+
+export function DashboardSidebar({
+  activeHref,
+  showGuide = false,
+}: {
+  activeHref?: string;
+  showGuide?: boolean;
+}) {
   return (
     <aside className="min-w-0 overflow-hidden rounded-lg border border-white/10 bg-slate-950/80 p-3 lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)]">
       <div className="mb-5 px-2">
@@ -163,7 +208,10 @@ export function DashboardSidebar({ showGuide = false }: { showGuide?: boolean })
           <Link
             key={item.label}
             href={item.href}
-            className="flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+            className={cn(
+              "flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-white/5 hover:text-white",
+              activeHref === item.href ? "bg-cyan-300/10 text-white" : "text-slate-300",
+            )}
           >
             <item.icon className="h-4 w-4 text-cyan-200" aria-hidden="true" />
             {item.label}
