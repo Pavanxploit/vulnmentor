@@ -3,6 +3,7 @@
 import {
   Activity,
   BadgeCheck,
+  BarChart3,
   BookOpen,
   Bot,
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
   Circle,
   Code2,
   Container,
+  Download,
   FileWarning,
   Flag,
   Gauge,
@@ -25,13 +27,14 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
+  TableProperties,
   Terminal,
   X,
 } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { activeChallenge, challenges, type Challenge } from "@/data/challenges";
 
-type Tab = "brief" | "attack" | "root" | "defense";
+type Tab = "brief" | "attack" | "root" | "defense" | "report";
 type LabRuntimeStatus = "unavailable" | "checking" | "online" | "offline";
 type FlagState = "idle" | "checking" | "correct" | "wrong" | "error";
 type AttemptStatus = "correct" | "wrong" | "error";
@@ -76,6 +79,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "attack", label: "Attack" },
   { id: "root", label: "Root Cause" },
   { id: "defense", label: "Defense" },
+  { id: "report", label: "Report" },
 ];
 
 const liveLabCount = challenges.filter(
@@ -222,6 +226,7 @@ export function VulnMentorApp() {
             labRuntime={labRuntime}
             isSolved={isSolved}
             attempts={selectedAttempts}
+            progress={progress}
           />
           <MentorPanel
             key={selected.id}
@@ -441,7 +446,7 @@ function TopBar({ labRuntime }: { labRuntime: LabRuntime }) {
           tone={labRuntime.status}
         />
         <StatusPill icon={<Bot size={15} />} label="Mentor offline mode" />
-        <StatusPill icon={<Activity size={15} />} label="Phase 4 mentor" />
+        <StatusPill icon={<Activity size={15} />} label="Phase 5 reports" />
       </div>
     </header>
   );
@@ -672,6 +677,7 @@ function Workspace({
   labRuntime,
   isSolved,
   attempts,
+  progress,
 }: {
   challenge: Challenge;
   tab: Tab;
@@ -688,6 +694,7 @@ function Workspace({
   labRuntime: LabRuntime;
   isSolved: boolean;
   attempts: FlagAttempt[];
+  progress: ProgressState;
 }) {
   return (
     <section className="min-w-0 rounded-md border border-[#dedfd7] bg-white shadow-sm">
@@ -728,7 +735,7 @@ function Workspace({
       </div>
 
       <div className="border-b border-[#e2e3db] px-4 py-3">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           {tabs.map((item) => (
             <button
               key={item.id}
@@ -767,6 +774,7 @@ function Workspace({
             )}
             {tab === "root" && <RootCauseTab challenge={challenge} />}
             {tab === "defense" && <DefenseTab challenge={challenge} />}
+            {tab === "report" && <ReportTab progress={progress} />}
           </>
         )}
       </div>
@@ -1210,6 +1218,361 @@ function DefenseTab({ challenge }: { challenge: Challenge }) {
       </div>
     </div>
   );
+}
+
+function ReportTab({ progress }: { progress: ProgressState }) {
+  const liveChallenges = challenges.filter(
+    (challenge) => challenge.status === "available",
+  );
+  const completedLiveChallenges = liveChallenges.filter((challenge) =>
+    progress.completed.includes(challenge.id),
+  );
+  const earnedPoints = completedLiveChallenges.reduce(
+    (total, challenge) => total + challenge.points,
+    0,
+  );
+  const totalPoints = liveChallenges.reduce(
+    (total, challenge) => total + challenge.points,
+    0,
+  );
+  const correctAttempts = progress.attempts.filter(
+    (attempt) => attempt.status === "correct",
+  ).length;
+  const completionRate =
+    liveChallenges.length === 0
+      ? 0
+      : Math.round((completedLiveChallenges.length / liveChallenges.length) * 100);
+  const accuracyRate =
+    progress.attempts.length === 0
+      ? 0
+      : Math.round((correctAttempts / progress.attempts.length) * 100);
+  const latestAttempt = progress.attempts[0];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <ReportMetric
+          label="Labs Solved"
+          value={`${completedLiveChallenges.length}/${liveChallenges.length}`}
+          detail={`${completionRate}% completion`}
+        />
+        <ReportMetric
+          label="Points Earned"
+          value={`${earnedPoints}/${totalPoints}`}
+          detail="Local demo score"
+        />
+        <ReportMetric
+          label="Flag Accuracy"
+          value={`${accuracyRate}%`}
+          detail={`${correctAttempts}/${progress.attempts.length} correct attempts`}
+        />
+        <ReportMetric
+          label="Last Activity"
+          value={latestAttempt ? formatReportDate(latestAttempt.submittedAt) : "None"}
+          detail="Browser-local history"
+        />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+        <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 font-semibold">
+              <BarChart3 size={18} />
+              Student Progress Report
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => exportProgressReport(progress, "json")}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#cfd2c8] bg-white px-3 text-sm font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+              >
+                <Download size={15} />
+                JSON
+              </button>
+              <button
+                type="button"
+                onClick={() => exportProgressReport(progress, "csv")}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[#cfd2c8] bg-white px-3 text-sm font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+              >
+                <Download size={15} />
+                CSV
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] border-separate border-spacing-y-2 text-left text-sm">
+              <thead className="text-xs uppercase text-[#69736d]">
+                <tr>
+                  <th className="px-3 py-1">Lab</th>
+                  <th className="px-3 py-1">Category</th>
+                  <th className="px-3 py-1">Difficulty</th>
+                  <th className="px-3 py-1">Status</th>
+                  <th className="px-3 py-1">Attempts</th>
+                  <th className="px-3 py-1">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                {liveChallenges.map((challenge) => {
+                  const labAttempts = progress.attempts.filter(
+                    (attempt) => attempt.challengeId === challenge.id,
+                  );
+                  const solved = progress.completed.includes(challenge.id);
+
+                  return (
+                    <tr key={challenge.id} className="bg-white">
+                      <td className="rounded-l-md border-y border-l border-[#dfe1d8] px-3 py-3 font-semibold">
+                        {challenge.title}
+                      </td>
+                      <td className="border-y border-[#dfe1d8] px-3 py-3 text-[#5c6661]">
+                        {challenge.category}
+                      </td>
+                      <td className="border-y border-[#dfe1d8] px-3 py-3">
+                        <Badge text={challenge.difficulty} tone="neutral" />
+                      </td>
+                      <td className="border-y border-[#dfe1d8] px-3 py-3">
+                        <Badge
+                          text={solved ? "Solved" : "Open"}
+                          tone={solved ? "success" : "warm"}
+                        />
+                      </td>
+                      <td className="border-y border-[#dfe1d8] px-3 py-3 font-mono">
+                        {labAttempts.length}
+                      </td>
+                      <td className="rounded-r-md border-y border-r border-[#dfe1d8] px-3 py-3 font-mono">
+                        {solved ? challenge.points : 0}/{challenge.points}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-md border border-[#d7e3ef] bg-[#f6fbff] p-4">
+          <div className="mb-3 flex items-center gap-2 font-semibold text-[#224a69]">
+            <TableProperties size={18} />
+            Demo Data Export
+          </div>
+          <p className="text-sm leading-6 text-[#40566a]">
+            Exports include solved labs, attempts, points, OWASP mappings, and
+            report timestamps. Use them for project demos, guide reviews, and
+            future backend migration.
+          </p>
+          <div className="mt-4 rounded-md border border-[#c9ddeb] bg-white p-3 text-xs leading-5 text-[#40566a]">
+            <p className="font-semibold">Current learner</p>
+            <p>Local Browser Learner</p>
+            <p className="mt-2 font-semibold">Storage mode</p>
+            <p>Browser local progress prototype</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4">
+          <div className="mb-3 flex items-center gap-2 font-semibold">
+            <Activity size={18} />
+            Attempt Logs Dashboard
+          </div>
+          {progress.attempts.length === 0 ? (
+            <p className="rounded-md border border-dashed border-[#cfd2c8] bg-white p-4 text-sm leading-6 text-[#5c6661]">
+              No attempts yet. Solve or submit flags to populate this dashboard.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {progress.attempts.slice(0, 8).map((attempt) => {
+                const challenge = challenges.find(
+                  (item) => item.id === attempt.challengeId,
+                );
+
+                return (
+                  <div
+                    key={attempt.id}
+                    className="rounded-md border border-[#dfe1d8] bg-white px-3 py-2"
+                  >
+                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                      <Badge
+                        text={attempt.status}
+                        tone={
+                          attempt.status === "correct"
+                            ? "success"
+                            : attempt.status === "wrong"
+                              ? "danger"
+                              : "warm"
+                        }
+                      />
+                      <span className="text-xs text-[#69736d]">
+                        {formatReportDate(attempt.submittedAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold">
+                      {challenge?.title ?? attempt.challengeId}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-[#3d4640]">
+                      {attempt.flagPreview}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[#5c6661]">
+                      {attempt.message}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4">
+          <div className="mb-3 flex items-center gap-2 font-semibold">
+            <Code2 size={18} />
+            Challenge Authoring Format
+          </div>
+          <p className="mb-3 text-sm leading-6 text-[#5c6661]">
+            Future admin mode can turn this format into a challenge builder.
+            For now it documents the required fields for adding a new lab.
+          </p>
+          <CodeBlock code={challengeAuthoringTemplate} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReportMetric({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-4">
+      <p className="text-xs font-semibold uppercase text-[#69736d]">{label}</p>
+      <p className="mt-2 text-2xl font-semibold">{value}</p>
+      <p className="mt-1 text-sm text-[#5c6661]">{detail}</p>
+    </div>
+  );
+}
+
+const challengeAuthoringTemplate = `{
+  id: "api-new-lab",
+  title: "New Vulnerability Lab",
+  category: "API Security",
+  difficulty: "Medium",
+  status: "available",
+  points: 150,
+  verifierId: "api-new-lab",
+  lab: {
+    baseUrl: "http://127.0.0.1:4070",
+    healthUrl: "http://127.0.0.1:4070/health",
+    tracesUrl: "http://127.0.0.1:4070/traces",
+    serviceName: "api-new-lab"
+  },
+  summary: "...",
+  skills: ["OWASP APIx ..."],
+  workflow: ["Recon", "Exploit", "Compare Fix", "Capture Flag"],
+  hints: [{ title: "Hint 1", body: "..." }],
+  rootCause: "...",
+  mitigation: ["..."],
+  impact: "...",
+  code: { vulnerable: "...", secure: "..." }
+}`;
+
+function formatReportDate(value: string) {
+  return new Date(value).toLocaleString([], {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function buildReportPayload(progress: ProgressState) {
+  const liveChallenges = challenges.filter(
+    (challenge) => challenge.status === "available",
+  );
+
+  return {
+    generatedAt: new Date().toISOString(),
+    learner: "Local Browser Learner",
+    summary: {
+      totalLabs: liveChallenges.length,
+      completedLabs: liveChallenges.filter((challenge) =>
+        progress.completed.includes(challenge.id),
+      ).length,
+      totalAttempts: progress.attempts.length,
+      correctAttempts: progress.attempts.filter(
+        (attempt) => attempt.status === "correct",
+      ).length,
+    },
+    challenges: liveChallenges.map((challenge) => {
+      const attempts = progress.attempts.filter(
+        (attempt) => attempt.challengeId === challenge.id,
+      );
+
+      return {
+        id: challenge.id,
+        title: challenge.title,
+        category: challenge.category,
+        difficulty: challenge.difficulty,
+        points: challenge.points,
+        solved: progress.completed.includes(challenge.id),
+        attemptCount: attempts.length,
+        owaspMapping: getOwaspMapping(challenge),
+        lastAttemptAt: attempts[0]?.submittedAt ?? null,
+      };
+    }),
+    attempts: progress.attempts,
+  };
+}
+
+function exportProgressReport(
+  progress: ProgressState,
+  format: "json" | "csv",
+) {
+  const payload = buildReportPayload(progress);
+
+  if (format === "json") {
+    downloadTextFile(
+      "vulnmentor-progress-report.json",
+      JSON.stringify(payload, null, 2),
+      "application/json",
+    );
+    return;
+  }
+
+  const rows = [
+    ["Lab", "Category", "Difficulty", "Solved", "Attempts", "Points", "OWASP"],
+    ...payload.challenges.map((challenge) => [
+      challenge.title,
+      challenge.category,
+      challenge.difficulty,
+      challenge.solved ? "yes" : "no",
+      String(challenge.attemptCount),
+      String(challenge.solved ? challenge.points : 0),
+      challenge.owaspMapping,
+    ]),
+  ];
+  const csv = rows.map((row) => row.map(escapeCsv).join(",")).join("\n");
+
+  downloadTextFile("vulnmentor-progress-report.csv", csv, "text/csv");
+}
+
+function escapeCsv(value: string) {
+  return `"${value.replaceAll('"', '""')}"`;
+}
+
+function downloadTextFile(filename: string, content: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 const mentorQuickPrompts = [

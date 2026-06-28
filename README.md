@@ -23,6 +23,10 @@ This repository is intentionally educational. Labs must run only in the controll
 - Offline AI Mentor with lab-only guardrails
 - Safe refusal behavior for real-world target requests
 - OWASP mapping and post-solve debrief guidance
+- Admin-style report tab
+- Student progress report and attempt logs dashboard
+- Exportable JSON/CSV demo data
+- Challenge authoring format reference
 - Root-cause explanation
 - Vulnerable vs secure code comparison
 - Mitigation checklist
@@ -162,5 +166,6 @@ Planned additions:
 - Backend persistence for users and progress
 - More secure comparison coverage
 - Optional hosted LLM backend for the guarded mentor workflow
-- Admin dashboard
+- Backend-backed admin dashboard
+- Multi-student reporting
 - Final demo and deployment guide

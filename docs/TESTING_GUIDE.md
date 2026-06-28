@@ -24,11 +24,13 @@ Check:
 - SQL Injection, Stored XSS, API Broken Authorization, JWT Tampering, Rate Limit Bypass, and Excessive Data Exposure labs open.
 - Hints reveal one by one.
 - Flag form accepts input.
-- Brief, Attack, Root Cause, and Defense tabs work.
+- Brief, Attack, Root Cause, Defense, and Report tabs work.
 - Brief tab shows per-lab reset instructions.
 - AI Mentor shows guardrails, OWASP mapping, quick prompts, hint levels, and lab-only responses.
 - AI Mentor refuses real-world target requests and direct flag/solution requests.
 - Solved labs show a post-solve debrief card in the mentor panel.
+- Report tab shows progress metrics, per-lab status rows, attempt logs, export buttons, and the challenge authoring format.
+- JSON and CSV export buttons download local demo report files.
 
 ## 2. Check The Docker Labs
 

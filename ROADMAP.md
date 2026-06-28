@@ -49,10 +49,10 @@ Status: in progress
 ## Phase 5: Admin And Reporting
 
 - [ ] Admin challenge management
-- [ ] Lab authoring format
-- [ ] Student progress report
-- [ ] Attempt logs dashboard
-- [ ] Exportable project demo data
+- [x] Lab authoring format
+- [x] Student progress report
+- [x] Attempt logs dashboard
+- [x] Exportable project demo data
 
 ## Phase 6: Portfolio Polish
 
