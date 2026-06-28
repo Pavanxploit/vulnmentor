@@ -4,6 +4,16 @@ VulnMentor is an AI-guided Web and API security CTF sandbox for students. The go
 
 This repository is intentionally educational. Labs must run only in the controlled local sandbox.
 
+## Project Highlights
+
+- Web + API security labs mapped to OWASP concepts
+- CTF-style flag workflow with local progress tracking
+- Vulnerable and secure comparison views
+- Dockerized localhost lab targets
+- Guarded offline AI Mentor for safe learning guidance
+- Admin-style progress report with JSON/CSV export
+- Public-safe documentation for college demos and portfolio review
+
 ## Current Build
 
 - Next.js learning portal
@@ -114,16 +124,9 @@ http://127.0.0.1:4050/traces
 http://127.0.0.1:4060/traces
 ```
 
-Current demo flags:
+## Flag Policy
 
-```text
-VM{sql_auth_bypass}
-VM{stored_xss_needs_output_encoding}
-VM{api_bola_idor_mastered}
-VM{jwt_claims_need_verification}
-VM{rate_limits_need_stable_keys}
-VM{return_only_required_fields}
-```
+Flags are intentionally not listed in the README. Learners should solve each local lab and submit captured flags through the VulnMentor portal. This keeps the public project page useful for guides and recruiters without turning it into an answer sheet.
 
 ## Safe Usage Rules
 
@@ -144,6 +147,10 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 - [Safety and ethics](./SAFETY.md)
 - [Run locally](./docs/RUN_LOCALLY.md)
 - [Deployment model](./docs/DEPLOYMENT_MODEL.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Demo script](./docs/DEMO_SCRIPT.md)
+- [Portfolio showcase notes](./docs/PORTFOLIO_SHOWCASE.md)
+- [Final presentation checklist](./docs/FINAL_PRESENTATION_CHECKLIST.md)
 - [Testing guide](./docs/TESTING_GUIDE.md)
 - [Roadmap](./ROADMAP.md)
 

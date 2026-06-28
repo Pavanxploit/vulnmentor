@@ -56,10 +56,13 @@ Status: in progress
 
 ## Phase 6: Portfolio Polish
 
-- [ ] Public-safe README
-- [ ] Demo video
+- [x] Public-safe README
+- [x] Demo script
+- [ ] Recorded demo video
 - [ ] Screenshots
-- [ ] Architecture diagram
+- [x] Architecture diagram
+- [x] Portfolio showcase notes
+- [x] Final presentation checklist
 - [ ] Final report and PPT updates
 - [ ] Optional hosted frontend
 
