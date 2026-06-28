@@ -64,10 +64,13 @@ Suggested line:
 
 ## 5. Admin And Reporting Demo
 
-Open the Report tab.
+Open the Admin Console at `http://localhost:3000/admin`, then open the reporting/progress areas from the dashboard.
 
 Show:
 
+- Challenge readiness board
+- Verifier IDs and Docker service names
+- Authoring snapshot for selected lab
 - Labs solved
 - Points earned
 - Attempt logs
@@ -77,7 +80,7 @@ Show:
 
 Suggested line:
 
-> This report view is the starting point for future multi-student class mode and backend-backed admin reporting.
+> The admin and reporting views help a guide verify lab readiness, review student progress, and prepare the platform for future multi-student class mode.
 
 ## 6. Closing
 

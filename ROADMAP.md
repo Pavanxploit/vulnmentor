@@ -59,13 +59,15 @@ Status: complete
 
 - [x] Public-safe README
 - [x] Demo script
+- [x] Demo video storyboard
 - [ ] Recorded demo video
 - [x] Screenshots
 - [x] Screenshot capture script
 - [x] Architecture diagram
 - [x] Portfolio showcase notes
 - [x] Final presentation checklist
-- [ ] Final report and PPT updates
+- [x] Final report and PPT content pack
+- [ ] Final report and PPT files
 - [ ] Optional hosted frontend
 
 ## Phase 7: Academy Website Experience
@@ -94,8 +96,8 @@ Status: complete
 
 ## Remaining Focus Areas
 
-- Recorded demo video
-- Final report and PPT updates
+- Record actual demo video
+- Generate final report and PPT files
 - Optional hosted safe frontend
 - Stretch goals after the main project is review-ready
 

@@ -22,8 +22,9 @@ Use this checklist before presenting VulnMentor in a college review, guide meeti
 5. Show hints, traces, and flag submission.
 6. Show root cause and defense guidance.
 7. Open the AI Mentor and demonstrate safe lab-only guidance.
-8. Open the Report tab and export demo data.
-9. Close with future scope: authentication, database progress, multi-student class mode, and hosted safe portal.
+8. Open the Admin Console and show lab readiness.
+9. Open the report/progress area and explain exportable demo data.
+10. Close with future scope: multi-student class mode, generated lab templates, and hosted safe portal.
 
 ## Best Labs To Present
 
@@ -40,7 +41,8 @@ Use this checklist before presenting VulnMentor in a college review, guide meeti
 - The project is safe because vulnerable targets run locally in Docker.
 - The project is not only exploitation-focused; it also teaches detection, explanation, mitigation, and secure comparison.
 - The mentor is currently offline and guarded, so it is safe for college demo use.
-- The architecture can later support user login, database-backed progress, and class-level reporting.
+- The admin console helps guides review lab readiness before a class session.
+- The architecture can later support class-level reporting and a hosted safe frontend.
 
 ## Do Not Do
 
@@ -57,5 +59,7 @@ Use this checklist before presenting VulnMentor in a college review, guide meeti
 - Roadmap shows completed and pending phases.
 - Architecture diagram is available.
 - Demo script is available.
+- Demo video storyboard is available.
+- Final report and PPT content pack is available.
 - No public answer sheet is included in the README.
 - Build and lint pass before pushing.

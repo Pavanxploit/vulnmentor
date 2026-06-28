@@ -14,6 +14,7 @@ VulnMentor is an AI-guided Web and API security CTF sandbox for students. It pro
 - Shows runtime traces so students understand detection and logging
 - Includes a guarded mentor design that refuses real-target abuse
 - Provides report export for presentation and future classroom use
+- Includes an admin console for lab readiness and challenge metadata review
 
 ## Skills Demonstrated
 
@@ -39,6 +40,7 @@ Built VulnMentor, a Dockerized Web and API security CTF learning platform with S
 4. Why the mentor refuses real-world target requests.
 5. How traces help students think like defenders, not only attackers.
 6. How this can evolve into multi-student class mode.
+7. Why the admin console keeps challenge review organized for guides.
 
 ## Guide Presentation Angle
 
@@ -58,5 +60,7 @@ Explain the project as a learning ecosystem:
 - Labs have health endpoints
 - No real secrets or real targets are included
 - Demo script is available
+- Demo video storyboard is available
+- Final report and PPT content pack is available
 - Architecture diagram is documented
 - Roadmap shows completed and future phases

@@ -47,6 +47,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Student progress report and attempt logs dashboard
 - Exportable JSON/CSV demo data
 - Challenge authoring format reference
+- Demo video storyboard and final report/PPT content pack
 - Root-cause explanation
 - Vulnerable vs secure code comparison
 - Mitigation checklist
@@ -173,6 +174,9 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 - [Demo script](./docs/DEMO_SCRIPT.md)
 - [Portfolio showcase notes](./docs/PORTFOLIO_SHOWCASE.md)
 - [Final presentation checklist](./docs/FINAL_PRESENTATION_CHECKLIST.md)
+- [Demo video storyboard](./docs/DEMO_VIDEO_STORYBOARD.md)
+- [Final report and PPT content pack](./docs/FINAL_REPORT_AND_PPT_PACK.md)
+- [Remaining phases](./docs/REMAINING_PHASES.md)
 - [Screenshots](./docs/SCREENSHOTS.md)
 - [Testing guide](./docs/TESTING_GUIDE.md)
 - [Admin guide](./docs/ADMIN_GUIDE.md)
@@ -195,8 +199,9 @@ npm run screenshots
 
 Planned additions:
 
-- Backend persistence for users and progress
-- More secure comparison coverage
+- Recorded demo video
+- Final report and PPT files in college format
 - Optional hosted LLM backend for the guarded mentor workflow
+- Optional hosted safe frontend
 - Multi-student reporting
 - Final demo and deployment guide
