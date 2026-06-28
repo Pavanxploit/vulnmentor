@@ -37,7 +37,7 @@ Status: complete
 - [x] Excessive data exposure
 - [x] Stored XSS
 - [x] Secure version comparison for API BOLA lab
-- [ ] Secure version for every vulnerable lab
+- [x] Secure version comparison for every vulnerable lab
 
 ## Phase 4: AI Mentor
 
@@ -85,10 +85,16 @@ Status: complete
 - [x] Keep local browser progress as fallback mode
 - [x] Add dashboard student access panel
 
+## Phase 9: Secure Comparison Completion
+
+- [x] Add vulnerable vs secure implementation section to every lab page
+- [x] Show risky code and fixed code side by side
+- [x] Add per-lab secure coding checklist from mitigation notes
+- [x] Update lab checklist to include secure-code comparison
+
 ## Remaining Focus Areas
 
 - Backend login and database-backed student progress
-- Secure comparison coverage for every lab
 - Admin challenge management
 - Recorded demo video
 - Final report and PPT updates

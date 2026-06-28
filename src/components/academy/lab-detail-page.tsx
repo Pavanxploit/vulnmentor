@@ -255,6 +255,8 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
               </article>
             </section>
 
+            <SecureComparisonSection challenge={challenge} />
+
             <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
               <div className="flex items-center gap-2">
                 <Code2 className="h-5 w-5 text-cyan-200" aria-hidden="true" />
@@ -292,7 +294,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
             <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
               <h2 className="text-lg font-semibold text-white">Lab checklist</h2>
               <div className="mt-4 space-y-3">
-                {["Read scenario", "Open local target", "Use hints carefully", "Submit flag", "Review secure fix"].map((item, index) => (
+                {["Read scenario", "Open local target", "Use hints carefully", "Submit flag", "Compare secure code"].map((item, index) => (
                   <div key={item} className="flex items-center gap-3 rounded-md bg-slate-950/70 p-3 text-sm text-slate-200">
                     <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300/10 text-xs font-semibold text-cyan-100">
                       {index + 1}
@@ -325,6 +327,90 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
         </section>
       </div>
     </main>
+  );
+}
+
+function SecureComparisonSection({ challenge }: { challenge: Challenge }) {
+  return (
+    <section className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Code2 className="h-5 w-5 text-cyan-100" aria-hidden="true" />
+            <h2 className="text-xl font-semibold text-white">Vulnerable vs Secure Comparison</h2>
+          </div>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+            Compare the unsafe pattern with the defensive implementation. This section is available for every lab so students learn the fix, not only the attack path.
+          </p>
+        </div>
+        <Badge tone="green">Defense view</Badge>
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-2">
+        <CodePanel
+          title="Vulnerable pattern"
+          tone="red"
+          body={challenge.code.vulnerable}
+          caption="The application trusts input, claims, object IDs, or response fields too early."
+        />
+        <CodePanel
+          title="Secure version"
+          tone="green"
+          body={challenge.code.secure}
+          caption="The fixed version validates, authorizes, verifies, encodes, filters, or rate-limits on the server side."
+        />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+          <h3 className="font-semibold text-white">What changed?</h3>
+          <p className="mt-2 text-sm leading-7 text-slate-300">{challenge.rootCause}</p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+          <h3 className="font-semibold text-white">Secure coding checklist</h3>
+          <ul className="mt-3 space-y-2">
+            {challenge.mitigation.slice(0, 4).map((item) => (
+              <li key={item} className="flex gap-2 text-sm leading-6 text-slate-300">
+                <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CodePanel({
+  body,
+  caption,
+  title,
+  tone,
+}: {
+  body: string;
+  caption: string;
+  title: string;
+  tone: "green" | "red";
+}) {
+  const toneClass =
+    tone === "green"
+      ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+      : "border-red-300/25 bg-red-400/10 text-red-100";
+
+  return (
+    <article className="min-w-0 rounded-lg border border-white/10 bg-slate-950/80 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-semibold text-white">{title}</h3>
+        <span className={cn("rounded-md border px-2 py-1 text-xs font-semibold", toneClass)}>
+          {tone === "green" ? "Fixed" : "Risk"}
+        </span>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-slate-400">{caption}</p>
+      <pre className="mt-4 max-h-[360px] overflow-auto rounded-md border border-white/10 bg-slate-950 p-4 text-xs leading-6 text-slate-100">
+        <code>{body}</code>
+      </pre>
+    </article>
   );
 }
 

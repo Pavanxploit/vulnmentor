@@ -33,6 +33,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Runtime trace view from the lab
 - Challenge filtering by category and difficulty
 - Per-lab Docker reset instructions
+- Vulnerable vs secure implementation comparison on every lab page
 - Flag submission workflow
 - Local progress and attempt history
 - Progressive hints
