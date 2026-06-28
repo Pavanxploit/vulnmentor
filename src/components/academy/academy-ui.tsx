@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Activity, BookOpen, FlaskConical, LayoutDashboard, NotebookPen, Route, Settings, Trophy } from "lucide-react";
+import { Activity, BookOpen, ClipboardCheck, FlaskConical, LayoutDashboard, NotebookPen, Route, Settings, Trophy } from "lucide-react";
 
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -11,6 +11,7 @@ export const sidebarItems = [
   { label: "Learning Paths", href: "/dashboard#learning-paths", icon: Route },
   { label: "Labs", href: "/dashboard#labs", icon: FlaskConical },
   { label: "Progress", href: "/dashboard#progress", icon: Trophy },
+  { label: "Admin", href: "/admin", icon: ClipboardCheck },
   { label: "Notes", href: "/dashboard#notes", icon: NotebookPen },
   { label: "Settings", href: "/dashboard#settings", icon: Settings },
 ] as const;
@@ -136,6 +137,9 @@ export function AcademyTopNav() {
           </Link>
           <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/dashboard#labs">
             Labs
+          </Link>
+          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/admin">
+            Admin
           </Link>
         </nav>
         <Link

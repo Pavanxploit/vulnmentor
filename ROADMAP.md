@@ -49,7 +49,7 @@ Status: complete
 
 ## Phase 5: Admin And Reporting
 
-- [ ] Admin challenge management
+- [x] Admin challenge management
 - [x] Lab authoring format
 - [x] Student progress report
 - [x] Attempt logs dashboard
@@ -94,8 +94,6 @@ Status: complete
 
 ## Remaining Focus Areas
 
-- Backend login and database-backed student progress
-- Admin challenge management
 - Recorded demo video
 - Final report and PPT updates
 - Optional hosted safe frontend

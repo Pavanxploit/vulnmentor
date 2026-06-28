@@ -10,6 +10,7 @@ const rootDir = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const screenshotDir = process.env.SCREENSHOT_DIR
   ? path.resolve(process.env.SCREENSHOT_DIR)
   : path.join(rootDir, "screenshots");
+const portalUrl = (process.env.PORTAL_URL ?? "http://localhost:3000").replace(/\/$/, "");
 const defaultWidth = Number(process.env.SCREENSHOT_WIDTH ?? 1440);
 const defaultHeight = Number(process.env.SCREENSHOT_HEIGHT ?? 1100);
 
@@ -255,23 +256,28 @@ async function capture(client, item) {
 const screenshots = [
   {
     file: "01-portal-overview.png",
-    url: "http://localhost:3000",
+    url: portalUrl,
     expectText: "Learn Cybersecurity with Safe Vulnerable Labs",
   },
   {
     file: "02-report-dashboard.png",
-    url: "http://localhost:3000/dashboard",
+    url: `${portalUrl}/dashboard`,
     expectText: "Practice modules",
   },
   {
     file: "03-sqli-lab.png",
-    url: "http://localhost:3000/labs/web-sqli-login",
+    url: `${portalUrl}/labs/web-sqli-login`,
     expectText: "Submit Flag",
   },
   {
     file: "04-stored-xss-lab.png",
-    url: "http://localhost:3000/labs/web-xss-comment",
+    url: `${portalUrl}/labs/web-xss-comment`,
     expectText: "Stored XSS",
+  },
+  {
+    file: "05-admin-console.png",
+    url: `${portalUrl}/admin`,
+    expectText: "Challenge Management",
   },
 ];
 

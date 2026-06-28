@@ -42,6 +42,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - OWASP mapping and post-solve debrief guidance
 - Demo student login with HTTP-only session cookie
 - Backend-backed progress using local JSON database storage
+- Guide/Admin challenge management console
 - Admin-style report tab
 - Student progress report and attempt logs dashboard
 - Exportable JSON/CSV demo data
@@ -174,6 +175,7 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 - [Final presentation checklist](./docs/FINAL_PRESENTATION_CHECKLIST.md)
 - [Screenshots](./docs/SCREENSHOTS.md)
 - [Testing guide](./docs/TESTING_GUIDE.md)
+- [Admin guide](./docs/ADMIN_GUIDE.md)
 - [Roadmap](./ROADMAP.md)
 
 ## Scripts
@@ -196,6 +198,5 @@ Planned additions:
 - Backend persistence for users and progress
 - More secure comparison coverage
 - Optional hosted LLM backend for the guarded mentor workflow
-- Backend-backed admin dashboard
 - Multi-student reporting
 - Final demo and deployment guide

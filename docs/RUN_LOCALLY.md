@@ -67,6 +67,7 @@ Open:
 
 ```text
 http://127.0.0.1:3000
+http://127.0.0.1:3000/admin
 ```
 
 ## 5. Use The Platform
@@ -119,6 +120,13 @@ If port `3000` is already used:
 
 ```bash
 npm run dev -- --port 3001
+```
+
+For screenshots on a different portal port:
+
+```powershell
+$env:PORTAL_URL="http://localhost:3001"
+npm run screenshots
 ```
 
 If Docker labs do not start, open Docker Desktop first and wait for the engine to become ready.
