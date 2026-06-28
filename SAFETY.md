@@ -46,3 +46,5 @@ The AI Mentor should teach, not solve everything directly. It should:
 - Avoid directly revealing flags.
 - Refuse requests to attack real targets.
 - Keep guidance inside the project lab context.
+
+Current mentor behavior is offline and rule-based. This keeps demos reliable without requiring an API key, and it makes the guardrails visible before any future hosted LLM backend is added.

@@ -26,6 +26,9 @@ Check:
 - Flag form accepts input.
 - Brief, Attack, Root Cause, and Defense tabs work.
 - Brief tab shows per-lab reset instructions.
+- AI Mentor shows guardrails, OWASP mapping, quick prompts, hint levels, and lab-only responses.
+- AI Mentor refuses real-world target requests and direct flag/solution requests.
+- Solved labs show a post-solve debrief card in the mentor panel.
 
 ## 2. Check The Docker Labs
 

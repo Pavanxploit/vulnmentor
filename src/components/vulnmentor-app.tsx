@@ -20,8 +20,11 @@ import {
   Logs,
   Play,
   RefreshCcw,
+  Send,
+  ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
   Terminal,
   X,
 } from "lucide-react";
@@ -40,6 +43,13 @@ type FlagAttempt = {
   flagPreview: string;
   submittedAt: string;
   message: string;
+};
+
+type MentorMessage = {
+  id: string;
+  role: "student" | "mentor";
+  text: string;
+  tone: "normal" | "safety" | "success";
 };
 
 type ProgressState = {
@@ -214,6 +224,7 @@ export function VulnMentorApp() {
             attempts={selectedAttempts}
           />
           <MentorPanel
+            key={selected.id}
             challenge={selected}
             hintCount={hintCount}
             completion={completion}
@@ -430,7 +441,7 @@ function TopBar({ labRuntime }: { labRuntime: LabRuntime }) {
           tone={labRuntime.status}
         />
         <StatusPill icon={<Bot size={15} />} label="Mentor offline mode" />
-        <StatusPill icon={<Activity size={15} />} label="Phase 3 build" />
+        <StatusPill icon={<Activity size={15} />} label="Phase 4 mentor" />
       </div>
     </header>
   );
@@ -1201,6 +1212,171 @@ function DefenseTab({ challenge }: { challenge: Challenge }) {
   );
 }
 
+const mentorQuickPrompts = [
+  "Give me a progressive hint",
+  "Explain root cause",
+  "Show defense checklist",
+  "Explain OWASP mapping",
+];
+
+function createMentorMessage(
+  role: MentorMessage["role"],
+  text: string,
+  tone: MentorMessage["tone"] = "normal",
+): MentorMessage {
+  return {
+    id: createAttemptId(),
+    role,
+    text,
+    tone,
+  };
+}
+
+function initialMentorMessage(challenge: Challenge) {
+  return `I am in lab-only mentor mode for ${challenge.title}. Ask for a progressive hint, root-cause explanation, defense checklist, or OWASP mapping. I will keep guidance inside the VulnMentor localhost sandbox.`;
+}
+
+function getOwaspMapping(challenge: Challenge) {
+  return (
+    challenge.skills.find((skill) => skill.toLowerCase().startsWith("owasp")) ??
+    "OWASP mapped lab objective"
+  );
+}
+
+function isRealWorldTargetRequest(prompt: string) {
+  const hasExternalUrl =
+    /\bhttps?:\/\/(?!localhost\b|127\.0\.0\.1\b|0\.0\.0\.0\b|\[::1\])[^\s]+/i.test(
+      prompt,
+    );
+  const hasDomainLikeTarget =
+    /\b[a-z0-9-]+\.(com|net|org|in|ae|edu|gov|io|app|dev|test)\b/i.test(
+      prompt,
+    ) && !/(localhost|127\.0\.0\.1|0\.0\.0\.0)/i.test(prompt);
+  const hasAttackIntent =
+    /(attack|hack|exploit|scan|bypass|brute force|bruteforce|enumerate|dump|steal|find vuln|find vulnerability)/i.test(
+      prompt,
+    );
+  const mentionsRealScope =
+    /(real|public|production|college|external|third-party|someone else|live website|live api)/i.test(
+      prompt,
+    );
+
+  return hasExternalUrl || (hasDomainLikeTarget && hasAttackIntent) || (mentionsRealScope && hasAttackIntent);
+}
+
+function asksForDirectAnswer(prompt: string) {
+  return /(give|show|tell|reveal|what is).*(flag|answer|solution)|(flag|answer|solution).*(direct|exact|now|please)|solve it for me/i.test(
+    prompt,
+  );
+}
+
+function asksForPayload(prompt: string) {
+  return /(copy.?paste|one.?liner|exact payload|give payload|exploit code)/i.test(
+    prompt,
+  );
+}
+
+function buildMentorReply({
+  prompt,
+  challenge,
+  hintCount,
+  isSolved,
+  attempts,
+}: {
+  prompt: string;
+  challenge: Challenge;
+  hintCount: number;
+  isSolved: boolean;
+  attempts: FlagAttempt[];
+}) {
+  const trimmedPrompt = prompt.trim();
+  const normalized = trimmedPrompt.toLowerCase();
+  const owasp = getOwaspMapping(challenge);
+  const nextHint = challenge.hints[Math.min(hintCount, challenge.hints.length - 1)];
+  const firstMitigations = challenge.mitigation.slice(0, 3);
+
+  if (!trimmedPrompt) {
+    return createMentorMessage(
+      "mentor",
+      "Ask a question about the selected lab, or use a quick prompt below.",
+    );
+  }
+
+  if (isRealWorldTargetRequest(trimmedPrompt)) {
+    return createMentorMessage(
+      "mentor",
+      "I cannot help test, scan, exploit, or bypass real websites, public APIs, college systems, or third-party targets. I can help you practice the same concept only inside this VulnMentor localhost lab.",
+      "safety",
+    );
+  }
+
+  if (asksForDirectAnswer(trimmedPrompt)) {
+    return createMentorMessage(
+      "mentor",
+      "I will not directly reveal the flag or solve the lab for you. I can give a progressive hint, explain what to inspect, or help compare vulnerable and secure behavior.",
+      "safety",
+    );
+  }
+
+  if (asksForPayload(trimmedPrompt)) {
+    return createMentorMessage(
+      "mentor",
+      `I will guide the method instead of handing over a copy-paste payload. For this lab, focus on: ${nextHint?.body ?? challenge.workflow[0]}. After you try it, refresh traces and compare the secure path.`,
+      "safety",
+    );
+  }
+
+  if (/hint|stuck|next|where/i.test(normalized)) {
+    return createMentorMessage(
+      "mentor",
+      nextHint
+        ? `Progressive hint: ${nextHint.body}`
+        : `Start with the workflow step: ${challenge.workflow[0]}. Then inspect traces and compare the secure implementation.`,
+    );
+  }
+
+  if (/root|cause|why|vulnerable|bug/i.test(normalized)) {
+    return createMentorMessage(
+      "mentor",
+      `Root cause: ${challenge.rootCause}`,
+    );
+  }
+
+  if (/defense|defence|fix|secure|mitigat|prevent/i.test(normalized)) {
+    return createMentorMessage(
+      "mentor",
+      `Defense checklist:\n${firstMitigations.map((item) => `- ${item}`).join("\n")}`,
+    );
+  }
+
+  if (/owasp|mapping|category|api top|top 10/i.test(normalized)) {
+    return createMentorMessage(
+      "mentor",
+      `OWASP mapping: ${owasp}. In this lab, the mapping matters because the vulnerable behavior is: ${challenge.summary}`,
+    );
+  }
+
+  if (/trace|log|detect|monitor|soc/i.test(normalized)) {
+    return createMentorMessage(
+      "mentor",
+      `Detection angle: watch for unusual behavior in traces such as ${challenge.logs[0]}. A good report should mention what signal appears in logs and how the secure path changes that signal.`,
+    );
+  }
+
+  if (isSolved) {
+    return createMentorMessage(
+      "mentor",
+      `Post-solve debrief: you completed ${challenge.title}. Connect the demo to ${owasp}, explain the root cause in one sentence, then show one mitigation from the Defense tab. That is the interview-ready story.`,
+      "success",
+    );
+  }
+
+  return createMentorMessage(
+    "mentor",
+    `Safe next step: follow the lab workflow "${challenge.workflow.join(" -> ")}". You have ${attempts.length} local flag attempt${attempts.length === 1 ? "" : "s"} recorded. Ask for a hint, root cause, defense, OWASP mapping, or trace review.`,
+  );
+}
+
 function MentorPanel({
   challenge,
   hintCount,
@@ -1218,6 +1394,36 @@ function MentorPanel({
   attempts: FlagAttempt[];
   resetProgress: () => void;
 }) {
+  const [mentorQuestion, setMentorQuestion] = useState("");
+  const [mentorMessages, setMentorMessages] = useState<MentorMessage[]>(() => [
+    createMentorMessage("mentor", initialMentorMessage(challenge)),
+  ]);
+  const owasp = getOwaspMapping(challenge);
+
+  function askMentor(prompt: string) {
+    if (isLocked) return;
+
+    const reply = buildMentorReply({
+      prompt,
+      challenge,
+      hintCount,
+      isSolved,
+      attempts,
+    });
+
+    setMentorMessages((current) => [
+      ...current,
+      createMentorMessage("student", prompt),
+      reply,
+    ].slice(-8));
+    setMentorQuestion("");
+  }
+
+  function submitMentorQuestion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    askMentor(mentorQuestion);
+  }
+
   return (
     <aside className="rounded-md border border-[#dedfd7] bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -1225,8 +1431,8 @@ function MentorPanel({
           <Bot size={19} />
           AI Mentor
         </div>
-        <span className="rounded-md bg-[#f3eee4] px-2 py-1 text-xs font-medium text-[#795c25]">
-          guided
+        <span className="rounded-md bg-[#e7f6f0] px-2 py-1 text-xs font-medium text-[#0f6b53]">
+          guarded
         </span>
       </div>
 
@@ -1262,15 +1468,108 @@ function MentorPanel({
         )}
       </div>
 
+      <div className="mb-4 rounded-md border border-[#d7e3ef] bg-[#f6fbff] p-3">
+        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#224a69]">
+          <ShieldAlert size={16} />
+          Mentor Guardrails
+        </div>
+        <div className="space-y-2 text-xs leading-5 text-[#40566a]">
+          <p>Scope: VulnMentor localhost labs only.</p>
+          <p>Won&apos;t reveal flags, final answers, or real-target exploit help.</p>
+          <p>Will teach hints, root cause, OWASP mapping, traces, and defense.</p>
+        </div>
+      </div>
+
+      <div className="mb-4 rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-3">
+        <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <Sparkles size={16} />
+          OWASP Mapping
+        </div>
+        <p className="text-sm leading-5 text-[#4d5852]">{owasp}</p>
+      </div>
+
+      {isSolved && (
+        <div className="mb-4 rounded-md border border-[#b7e2cd] bg-[#f0fbf5] p-3">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#0f6b53]">
+            <CheckCircle2 size={16} />
+            Post-Solve Debrief
+          </div>
+          <p className="text-sm leading-5 text-[#365d4e]">
+            Explain the exploit path, map it to {owasp}, then show the secure
+            code and one mitigation. That gives you a clean presentation story.
+          </p>
+        </div>
+      )}
+
       {isLocked ? (
         <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-3 text-sm text-[#5b655f]">
           Planned labs will be connected after the first sandbox is complete.
         </div>
       ) : (
-        <div className="space-y-3">
-          {challenge.hints.map((hint, index) => {
-            const visible = index < hintCount;
-            return (
+        <div className="space-y-4">
+          <div className="rounded-md border border-[#e1e2da] bg-[#fbfbf8] p-3">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
+              <Bot size={16} />
+              Ask Mentor
+            </div>
+            <div className="mb-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+              {mentorMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`rounded-md border px-3 py-2 text-sm leading-5 ${
+                    message.role === "student"
+                      ? "ml-5 border-[#dfe1d8] bg-white text-[#2f3732]"
+                      : message.tone === "safety"
+                        ? "mr-5 border-[#efcaca] bg-[#fff3f3] text-[#8e2424]"
+                        : message.tone === "success"
+                          ? "mr-5 border-[#b7e2cd] bg-[#f0fbf5] text-[#0f6b53]"
+                          : "mr-5 border-[#d7e3ef] bg-[#f6fbff] text-[#2d536b]"
+                  }`}
+                >
+                  <div className="mb-1 text-xs font-semibold uppercase">
+                    {message.role === "student" ? "You" : "Mentor"}
+                  </div>
+                  <p className="whitespace-pre-wrap">{message.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {mentorQuickPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => askMentor(prompt)}
+                  className="min-h-9 rounded-md border border-[#cfd2c8] bg-white px-2 py-1 text-xs font-semibold text-[#2f3732] transition hover:border-[#8f9992]"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={submitMentorQuestion} className="space-y-2">
+              <textarea
+                value={mentorQuestion}
+                onChange={(event) => setMentorQuestion(event.target.value)}
+                placeholder="Ask about this lab only..."
+                className="min-h-20 w-full resize-none rounded-md border border-[#cdd1c9] bg-white px-3 py-2 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#99d7c8]"
+              />
+              <button
+                type="submit"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#151716] px-3 text-sm font-semibold text-white transition hover:bg-[#29302b]"
+              >
+                <Send size={16} />
+                Ask Safely
+              </button>
+            </form>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <ListChecks size={16} />
+              Hint Levels
+            </div>
+            {challenge.hints.map((hint, index) => {
+              const visible = index < hintCount;
+              return (
               <div
                 key={hint.title}
                 className={`rounded-md border p-3 ${
@@ -1293,8 +1592,9 @@ function MentorPanel({
                     : "Locked until the previous guidance step is used."}
                 </p>
               </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </aside>

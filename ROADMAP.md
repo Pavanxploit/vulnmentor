@@ -40,11 +40,11 @@ Status: in progress
 
 ## Phase 4: AI Mentor
 
-- [ ] Add AI Mentor prompt guardrails
-- [ ] Add hint levels
-- [ ] Add post-solve explanation
-- [ ] Add OWASP mapping per lab
-- [ ] Add refusal behavior for real-world targets
+- [x] Add AI Mentor prompt guardrails
+- [x] Add hint levels
+- [x] Add post-solve explanation
+- [x] Add OWASP mapping per lab
+- [x] Add refusal behavior for real-world targets
 
 ## Phase 5: Admin And Reporting
 

@@ -20,6 +20,9 @@ This repository is intentionally educational. Labs must run only in the controll
 - Flag submission workflow
 - Local progress and attempt history
 - Progressive hints
+- Offline AI Mentor with lab-only guardrails
+- Safe refusal behavior for real-world target requests
+- OWASP mapping and post-solve debrief guidance
 - Root-cause explanation
 - Vulnerable vs secure code comparison
 - Mitigation checklist
@@ -158,6 +161,6 @@ Planned additions:
 
 - Backend persistence for users and progress
 - More secure comparison coverage
-- AI Mentor integration with hint guardrails
+- Optional hosted LLM backend for the guarded mentor workflow
 - Admin dashboard
 - Final demo and deployment guide
