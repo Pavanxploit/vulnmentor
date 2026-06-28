@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordProgressAttempt } from "@/lib/progress-store";
+import { getSessionId } from "@/lib/session-cookie";
 
 const flagsByChallenge = new Map<string, string>([
   ["web-sqli-login", "VM{sql_auth_bypass}"],
@@ -38,14 +40,29 @@ export async function POST(request: NextRequest) {
   }
 
   const correct = body.flag.trim() === expectedFlag;
+  const sessionId = getSessionId(request);
+  const progress = sessionId
+    ? await recordProgressAttempt({
+        sessionId,
+        challengeId: body.challengeId,
+        flagPreview: previewFlag(body.flag.trim()),
+        correct,
+      })
+    : null;
 
   return NextResponse.json({
     ok: true,
     correct,
+    progress,
     message: correct
       ? "Flag accepted. Lab marked as solved."
       : "Flag mismatch. Review the lab behavior and try again.",
   });
+}
+
+function previewFlag(flag: string) {
+  if (flag.length <= 10) return flag;
+  return `${flag.slice(0, 6)}...${flag.slice(-4)}`;
 }
 
 function isFlagRequest(value: unknown): value is {

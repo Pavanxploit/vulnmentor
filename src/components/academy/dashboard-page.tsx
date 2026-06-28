@@ -1,9 +1,10 @@
 "use client";
 
+import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { Activity, ArrowRight, CheckCircle2, Clock3, Flag, FlaskConical, RefreshCcw, ShieldCheck, Signal, Target, Trophy } from "lucide-react";
+import { Activity, ArrowRight, Database, Flag, FlaskConical, RefreshCcw, ShieldCheck, Signal, Target, Trophy, UserRound } from "lucide-react";
 import { challenges } from "@/data/challenges";
-import { Badge, DashboardSidebar, MetricCard, SectionHeading, cn } from "./academy-ui";
+import { Badge, DashboardSidebar, MetricCard, SectionHeading } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatusMap } from "./lab-status";
 import { useLearningProgress } from "./progress";
 
@@ -27,7 +28,18 @@ const learningPaths = [
 
 export function DashboardPage() {
   const { statuses, refresh } = useLabStatusMap(challenges);
-  const { progress, completion, earnedPoints, totalPoints, accuracy } = useLearningProgress(challenges);
+  const {
+    progress,
+    progressMode,
+    student,
+    authMessage,
+    completion,
+    earnedPoints,
+    totalPoints,
+    accuracy,
+    loginStudent,
+    logoutStudent,
+  } = useLearningProgress(challenges);
   const completedSet = new Set(progress.completed);
   const nextLab = challenges.find((challenge) => !completedSet.has(challenge.id)) ?? challenges[0];
   const recentAttempts = progress.attempts.slice(0, 4);
@@ -41,10 +53,14 @@ export function DashboardPage() {
         <section className="min-w-0 space-y-5">
           <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-white/[0.04] p-5 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <Badge tone="cyan">Academy dashboard</Badge>
+              <Badge tone={student ? "green" : "cyan"}>
+                {student ? "Backend progress active" : "Academy dashboard"}
+              </Badge>
               <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Welcome back to VulnMentor</h1>
               <p className="mt-2 max-w-3xl break-words text-sm leading-6 text-slate-300">
-                Continue your Web and API security path, monitor local lab status, and keep your project demo progress in one place.
+                {student
+                  ? `${student.name}${student.usn ? ` (${student.usn})` : ""}, your progress is now stored through the backend demo database.`
+                  : "Continue your Web and API security path, monitor local lab status, and keep your project demo progress in one place."}
               </p>
             </div>
             <button
@@ -61,7 +77,12 @@ export function DashboardPage() {
             <MetricCard label="Progress" value={`${completion}%`} helper={`${progress.completed.length}/${challenges.length} labs solved`} icon={Trophy} />
             <MetricCard label="Points" value={`${earnedPoints}/${totalPoints}`} helper="Local demo score" icon={Flag} />
             <MetricCard label="Accuracy" value={`${accuracy}%`} helper={`${progress.attempts.length} flag attempts`} icon={Target} />
-            <MetricCard label="Lab status" value={`${onlineCount}/${challenges.length}`} helper="Docker targets online" icon={Signal} />
+            <MetricCard
+              label={student ? "Progress store" : "Lab status"}
+              value={student ? "Backend" : `${onlineCount}/${challenges.length}`}
+              helper={student ? "JSON database active" : "Docker targets online"}
+              icon={student ? Database : Signal}
+            />
           </section>
 
           <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
@@ -177,24 +198,131 @@ export function DashboardPage() {
 
             <article id="notes" className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
               <div className="flex items-center gap-2">
-                <Clock3 className="h-5 w-5 text-cyan-200" aria-hidden="true" />
-                <h2 className="text-xl font-semibold text-white">Study notes</h2>
+                <UserRound className="h-5 w-5 text-cyan-200" aria-hidden="true" />
+                <h2 className="text-xl font-semibold text-white">Student access</h2>
               </div>
-              <div className="mt-4 grid gap-3">
-                {["Write the payload in your notebook", "Explain why the bug exists", "Map the fix to a secure coding rule"].map((note) => (
-                  <div key={note} className="flex gap-3 rounded-lg border border-white/10 bg-slate-950/70 p-3">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
-                    <p className="text-sm leading-6 text-slate-300">{note}</p>
-                  </div>
-                ))}
-              </div>
-              <div id="settings" className={cn("mt-4 rounded-lg border border-white/10 bg-slate-950/70 p-3 text-sm leading-6 text-slate-400")}>
-                Settings placeholder: backend login, database progress, and class mode can be connected here later.
-              </div>
+              <StudentAccessPanel
+                authMessage={authMessage}
+                loginStudent={loginStudent}
+                logoutStudent={logoutStudent}
+                progressMode={progressMode}
+                student={student}
+              />
             </article>
           </section>
         </section>
       </div>
     </main>
+  );
+}
+
+function StudentAccessPanel({
+  authMessage,
+  loginStudent,
+  logoutStudent,
+  progressMode,
+  student,
+}: {
+  authMessage: string;
+  loginStudent: (input: { name: string; usn: string }) => Promise<void>;
+  logoutStudent: () => Promise<void>;
+  progressMode: "loading" | "backend" | "local";
+  student: { name: string; usn: string; lastSeenAt: string } | null;
+}) {
+  const [name, setName] = useState("Pavan Kumar");
+  const [usn, setUsn] = useState("4MH23IC033");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    try {
+      await loginStudent({ name, usn });
+      setMessage("Signed in. Flag attempts will now update backend progress.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not sign in.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitLogout() {
+    setBusy(true);
+    setMessage("");
+    try {
+      await logoutStudent();
+      setMessage("Signed out. The dashboard is back in local browser mode.");
+    } catch {
+      setMessage("Could not sign out.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (student) {
+    return (
+      <div id="settings" className="mt-4 space-y-3">
+        <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4">
+          <p className="text-sm font-semibold text-emerald-100">{student.name}</p>
+          <p className="mt-1 text-xs text-slate-300">{student.usn || "No USN added"}</p>
+          <p className="mt-3 text-xs text-slate-400">
+            Last active: {new Date(student.lastSeenAt).toLocaleString()}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={submitLogout}
+          disabled={busy}
+          className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Sign out
+        </button>
+        {(message || authMessage) ? (
+          <p className="rounded-md border border-white/10 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
+            {message || authMessage}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <form id="settings" onSubmit={submitLogin} className="mt-4 space-y-3">
+      <div className="rounded-lg border border-white/10 bg-slate-950/70 p-3 text-sm leading-6 text-slate-300">
+        Mode: {progressMode === "loading" ? "Checking backend session" : "Local browser progress"}
+      </div>
+      <label className="block text-sm font-semibold text-slate-200" htmlFor="student-name">
+        Student name
+      </label>
+      <input
+        id="student-name"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        className="min-h-11 w-full rounded-md border border-white/10 bg-slate-950 px-3 text-sm text-white outline-none focus:border-cyan-300"
+      />
+      <label className="block text-sm font-semibold text-slate-200" htmlFor="student-usn">
+        USN
+      </label>
+      <input
+        id="student-usn"
+        value={usn}
+        onChange={(event) => setUsn(event.target.value)}
+        className="min-h-11 w-full rounded-md border border-white/10 bg-slate-950 px-3 text-sm text-white outline-none focus:border-cyan-300"
+      />
+      <button
+        type="submit"
+        disabled={busy}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-emerald-400 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {busy ? "Signing in..." : "Start backend progress"}
+      </button>
+      {(message || authMessage) ? (
+        <p className="rounded-md border border-white/10 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
+          {message || authMessage}
+        </p>
+      ) : null}
+    </form>
   );
 }

@@ -39,6 +39,8 @@ This repository is intentionally educational. Labs must run only in the controll
 - Offline AI Mentor with lab-only guardrails
 - Safe refusal behavior for real-world target requests
 - OWASP mapping and post-solve debrief guidance
+- Demo student login with HTTP-only session cookie
+- Backend-backed progress using local JSON database storage
 - Admin-style report tab
 - Student progress report and attempt logs dashboard
 - Exportable JSON/CSV demo data
@@ -79,6 +81,14 @@ http://localhost:3000/labs/web-sqli-login
 ```
 
 The stable pre-redesign version is marked in Git as `backup-before-academy-ui-bfbe0f5`.
+
+Backend progress is stored locally in:
+
+```text
+.data/vulnmentor-progress.json
+```
+
+The `.data` folder is ignored by Git because it contains local demo student sessions and attempt history.
 
 ## Run The Labs
 

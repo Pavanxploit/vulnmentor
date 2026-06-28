@@ -7,7 +7,7 @@ The `screenshots` folder contains GitHub-ready images for the README, project re
 | File | Purpose |
 | --- | --- |
 | `screenshots/01-portal-overview.png` | Academy homepage hero and learning-path positioning |
-| `screenshots/02-report-dashboard.png` | Dashboard with sidebar, progress, lab grid, and activity |
+| `screenshots/02-report-dashboard.png` | Dashboard with sidebar, progress, lab grid, activity, and student access |
 | `screenshots/03-sqli-lab.png` | SQL Injection lab detail page |
 | `screenshots/04-stored-xss-lab.png` | Stored XSS lab detail page |
 

@@ -9,11 +9,13 @@ import { challenges } from "@/data/challenges";
 import { AcademyTopNav, Badge, cn } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatus } from "./lab-status";
 import { previewFlag, useLearningProgress } from "./progress";
+import type { ProgressState } from "@/lib/progress-types";
 
 type VerifyFlagResponse = {
   ok: boolean;
   correct: boolean;
   message: string;
+  progress: ProgressState | null;
 };
 
 export function LabDetailPage({ challenge }: { challenge: Challenge }) {
@@ -22,7 +24,8 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { status, lastChecked, refresh } = useLabStatus(challenge.lab);
-  const { progress, recordAttempt } = useLearningProgress(challenges);
+  const { progress, progressMode, student, applyProgress, recordLocalAttempt } =
+    useLearningProgress(challenges);
   const isSolved = progress.completed.includes(challenge.id);
   const relatedLabs = useMemo(
     () => challenges.filter((item) => item.category === challenge.category && item.id !== challenge.id).slice(0, 3),
@@ -53,7 +56,11 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
         }),
       });
       const result = (await response.json()) as VerifyFlagResponse;
-      recordAttempt(challenge.id, previewFlag(submittedFlag), result.correct);
+      if (result.progress) {
+        applyProgress(result.progress);
+      } else {
+        recordLocalAttempt(challenge.id, previewFlag(submittedFlag), result.correct);
+      }
       setFeedback(result.message);
       if (result.correct) setFlagValue("");
     } catch {
@@ -80,6 +87,9 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                 <Badge tone="amber">{challenge.difficulty}</Badge>
                 <Badge tone="green">{challenge.time}</Badge>
                 <Badge tone={statusTone(status)}>{statusLabel(status)}</Badge>
+                <Badge tone={student ? "green" : "slate"}>
+                  {student ? "Backend progress" : "Local progress"}
+                </Badge>
               </div>
               <h1 className="mt-5 text-4xl font-semibold leading-tight text-white md:text-5xl">{challenge.title}</h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">{challenge.summary}</p>
@@ -230,6 +240,11 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                 </form>
                 {feedback ? (
                   <p className="mt-4 rounded-lg border border-white/10 bg-slate-950/70 p-3 text-sm leading-6 text-slate-200">{feedback}</p>
+                ) : null}
+                {!student ? (
+                  <p className="mt-4 rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-3 text-xs leading-5 text-slate-300">
+                    Sign in from the dashboard to store progress in the backend. Current mode: {progressMode}.
+                  </p>
                 ) : null}
                 {isSolved ? (
                   <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-semibold text-emerald-100">

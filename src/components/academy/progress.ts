@@ -2,41 +2,100 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Challenge } from "@/data/challenges";
+import {
+  emptyProgress,
+  type ProgressState,
+  type StudentSession,
+} from "@/lib/progress-types";
 
-export type AttemptRecord = {
-  id: string;
-  challengeId: string;
-  correct: boolean;
-  flagPreview: string;
-  submittedAt: string;
+type SessionResponse = {
+  authenticated: boolean;
+  student: StudentSession | null;
+  progress: ProgressState | null;
 };
 
-export type ProgressState = {
-  completed: string[];
-  attempts: AttemptRecord[];
+type LoginResponse = {
+  ok: boolean;
+  message?: string;
+  student?: StudentSession;
+  progress?: ProgressState;
 };
 
 const progressStorageKey = "vulnmentor-progress-v1";
-const emptyProgress: ProgressState = { completed: [], attempts: [] };
 
 export function useLearningProgress(challenges: Challenge[]) {
   const [progress, setProgress] = useState<ProgressState>(emptyProgress);
+  const [student, setStudent] = useState<StudentSession | null>(null);
+  const [progressMode, setProgressMode] = useState<"loading" | "backend" | "local">("loading");
+  const [authMessage, setAuthMessage] = useState("");
+
+  const loadSession = useCallback(async () => {
+    try {
+      const response = await fetch("/api/auth/session", { cache: "no-store" });
+      const result = (await response.json()) as SessionResponse;
+
+      if (result.authenticated && result.student && result.progress) {
+        setStudent(result.student);
+        setProgress(result.progress);
+        setProgressMode("backend");
+        return;
+      }
+    } catch {
+      setAuthMessage("Backend progress is unavailable. Using local browser progress.");
+    }
+
+    setStudent(null);
+    setProgress(readStoredProgress());
+    setProgressMode("local");
+  }, []);
 
   useEffect(() => {
     const loadProgress = window.setTimeout(() => {
-      setProgress(readStoredProgress());
+      void loadSession();
     }, 0);
     return () => window.clearTimeout(loadProgress);
+  }, [loadSession]);
+
+  const applyProgress = useCallback(
+    (nextProgress: ProgressState) => {
+      setProgress(nextProgress);
+      if (!student) {
+        window.localStorage.setItem(progressStorageKey, JSON.stringify(nextProgress));
+      }
+    },
+    [student],
+  );
+
+  const loginStudent = useCallback(async (input: { name: string; usn: string }) => {
+    setAuthMessage("");
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const result = (await response.json()) as LoginResponse;
+
+    if (!response.ok || !result.ok || !result.student || !result.progress) {
+      throw new Error(result.message ?? "Could not sign in.");
+    }
+
+    setStudent(result.student);
+    setProgress(result.progress);
+    setProgressMode("backend");
+    setAuthMessage("Backend progress is active for this student.");
   }, []);
 
-  const saveProgress = useCallback((nextProgress: ProgressState) => {
-    setProgress(nextProgress);
-    window.localStorage.setItem(progressStorageKey, JSON.stringify(nextProgress));
+  const logoutStudent = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setStudent(null);
+    setProgress(readStoredProgress());
+    setProgressMode("local");
+    setAuthMessage("Signed out. Local browser progress is active.");
   }, []);
 
-  const recordAttempt = useCallback(
+  const recordLocalAttempt = useCallback(
     (challengeId: string, flagPreview: string, correct: boolean) => {
-      const attempt: AttemptRecord = {
+      const attempt = {
         id: `attempt-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         challengeId,
         correct,
@@ -45,9 +104,10 @@ export function useLearningProgress(challenges: Challenge[]) {
       };
 
       setProgress((current) => {
-        const completed = correct && !current.completed.includes(challengeId)
-          ? [...current.completed, challengeId]
-          : current.completed;
+        const completed =
+          correct && !current.completed.includes(challengeId)
+            ? [...current.completed, challengeId]
+            : current.completed;
         const nextProgress = {
           completed,
           attempts: [attempt, ...current.attempts].slice(0, 50),
@@ -59,9 +119,10 @@ export function useLearningProgress(challenges: Challenge[]) {
     [],
   );
 
-  const resetProgress = useCallback(() => {
-    saveProgress(emptyProgress);
-  }, [saveProgress]);
+  const resetLocalProgress = useCallback(() => {
+    setProgress(emptyProgress);
+    window.localStorage.setItem(progressStorageKey, JSON.stringify(emptyProgress));
+  }, []);
 
   return useMemo(() => {
     const totalPoints = challenges.reduce((sum, challenge) => sum + challenge.points, 0);
@@ -78,14 +139,33 @@ export function useLearningProgress(challenges: Challenge[]) {
 
     return {
       progress,
+      progressMode,
+      student,
+      authMessage,
       completion,
       earnedPoints,
       totalPoints,
       accuracy,
-      recordAttempt,
-      resetProgress,
+      applyProgress,
+      loginStudent,
+      logoutStudent,
+      recordLocalAttempt,
+      resetLocalProgress,
+      refreshProgress: loadSession,
     };
-  }, [challenges, progress, recordAttempt, resetProgress]);
+  }, [
+    authMessage,
+    challenges,
+    progress,
+    progressMode,
+    student,
+    applyProgress,
+    loadSession,
+    loginStudent,
+    logoutStudent,
+    recordLocalAttempt,
+    resetLocalProgress,
+  ]);
 }
 
 function readStoredProgress(): ProgressState {

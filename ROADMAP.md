@@ -19,9 +19,10 @@ Status: complete
 
 ## Phase 2: Real Learning Workflow
 
-- [ ] Add user login
+- [x] Add demo student login
 - [x] Add server-side flag verification endpoint
 - [x] Store local browser progress for prototype demos
+- [x] Store backend-backed progress in local JSON database
 - [x] Store local flag attempt history
 - [x] Add lab completion states
 - [x] Add challenge filtering by category and difficulty
@@ -74,6 +75,15 @@ Status: complete
 - [x] Add dashboard with left sidebar, learning paths, labs, progress, notes, and settings sections
 - [x] Add dynamic lab detail pages with scenario, target URL, hints, flag submission, and post-completion explanation
 - [x] Refresh screenshots for the new academy UI
+
+## Phase 8: Student Login And Backend Progress
+
+- [x] Add HTTP-only session cookie login
+- [x] Add backend session API
+- [x] Add local JSON progress database under `.data`
+- [x] Save signed-in student flag attempts through the backend
+- [x] Keep local browser progress as fallback mode
+- [x] Add dashboard student access panel
 
 ## Remaining Focus Areas
 
