@@ -6,7 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowLeft, BookOpen, CheckCircle2, Clock3, Code2, ExternalLink, Flag, HelpCircle, Lightbulb, RefreshCcw, ShieldCheck, Target, TerminalSquare } from "lucide-react";
 import type { Challenge } from "@/data/challenges";
 import { challenges } from "@/data/challenges";
-import { getTeachingModule } from "@/data/teaching";
+import { getNextTeachingLesson, getTeachingLesson, getTeachingModule } from "@/data/teaching";
 import { AcademyTopNav, Badge, cn } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatus } from "./lab-status";
 import { useLearningProgress } from "./progress";
@@ -28,6 +28,8 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
   const { progress, student, applyProgress } = useLearningProgress(challenges);
   const isSolved = progress.completed.includes(challenge.id);
   const teachingModule = getTeachingModule(challenge.id);
+  const teachingLesson = getTeachingLesson(challenge.teaching.lessonSlug);
+  const nextTeachingLesson = teachingLesson ? getNextTeachingLesson(teachingLesson.slug) : undefined;
   const relatedLabs = useMemo(
     () => challenges.filter((item) => item.category === challenge.category && item.id !== challenge.id).slice(0, 3),
     [challenge],
@@ -98,6 +100,15 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
               </div>
               <h1 className="mt-5 text-4xl font-semibold leading-tight text-white md:text-5xl">{challenge.title}</h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">{challenge.summary}</p>
+              {teachingLesson ? (
+                <Link
+                  href={`/teaching/${teachingLesson.slug}`}
+                  className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-400 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+                >
+                  Learn first
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              ) : null}
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <InfoPill icon={Target} label="Objective" value={challenge.workflow[0]} />
                 <InfoPill icon={Flag} label="Reward" value={`${challenge.points} points`} />
@@ -153,7 +164,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{teachingModule.studentOutcome}</p>
                   </div>
                   <Link
-                    href={`/teaching#${challenge.id}`}
+                    href={`/teaching/${challenge.teaching.lessonSlug}`}
                     className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white hover:bg-white/10"
                   >
                     Full lesson
@@ -170,6 +181,42 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                   <CompactLesson title="Check yourself" items={teachingModule.checkYourself} />
                   <CompactLesson title="Avoid these mistakes" items={teachingModule.commonMistakes} />
                 </div>
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  <IntroLessonCard title="Beginner explanation" body={challenge.teaching.beginnerIntro.what} />
+                  <IntroLessonCard title="What creates the vulnerability?" body={challenge.teaching.beginnerIntro.developerMistake} />
+                  <IntroLessonCard title="Normal feature" body={challenge.teaching.beginnerIntro.normalFeature} />
+                  <IntroLessonCard title="Why it matters" body={challenge.teaching.beginnerIntro.why} />
+                </div>
+
+                <div className="mt-4 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+                  <LessonSteps title="Prerequisites" items={challenge.teaching.prerequisites} />
+                  <LessonSteps title="Testing methodology" items={challenge.teaching.methodology} />
+                </div>
+
+                <div className="mt-4 grid gap-4 xl:grid-cols-3">
+                  <CompactLesson title="Evidence checklist" items={challenge.teaching.evidenceChecklist} />
+                  <ReportNoteCard template={challenge.teaching.reportTemplate} />
+                  <CompactLesson title="Common mistakes" items={challenge.teaching.commonMistakes} />
+                </div>
+
+                {nextTeachingLesson ? (
+                  <div className="mt-4 rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4">
+                    <p className="text-sm font-semibold text-emerald-100">Next lesson recommendation</p>
+                    <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <h3 className="font-semibold text-white">{nextTeachingLesson.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-slate-300">{nextTeachingLesson.summary}</p>
+                      </div>
+                      <Link
+                        href={`/teaching/${nextTeachingLesson.slug}`}
+                        className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+                      >
+                        Continue
+                      </Link>
+                    </div>
+                  </div>
+                ) : null}
               </section>
             ) : null}
 
@@ -330,7 +377,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
             <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
               <h2 className="text-lg font-semibold text-white">Lab checklist</h2>
               <div className="mt-4 space-y-3">
-                {["Read scenario", "Open local target", "Use hints carefully", "Submit flag", "Compare secure code"].map((item, index) => (
+                {["Learn first", "Read scenario", "Collect evidence", "Submit flag", "Compare secure code"].map((item, index) => (
                   <div key={item} className="flex items-center gap-3 rounded-md bg-slate-950/70 p-3 text-sm text-slate-200">
                     <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300/10 text-xs font-semibold text-cyan-100">
                       {index + 1}
@@ -408,6 +455,30 @@ function CompactLesson({
           </li>
         ))}
       </ul>
+    </article>
+  );
+}
+
+function IntroLessonCard({
+  body,
+  title,
+}: {
+  body: string;
+  title: string;
+}) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
+    </article>
+  );
+}
+
+function ReportNoteCard({ template }: { template: string }) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+      <h3 className="text-sm font-semibold text-white">Report note template</h3>
+      <p className="mt-3 text-xs leading-6 text-slate-300">{template}</p>
     </article>
   );
 }

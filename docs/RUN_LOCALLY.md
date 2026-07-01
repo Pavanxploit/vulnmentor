@@ -71,6 +71,8 @@ http://127.0.0.1:3000/register
 http://127.0.0.1:3000/login
 http://127.0.0.1:3000/dashboard
 http://127.0.0.1:3000/teaching
+http://127.0.0.1:3000/teaching/sql-injection
+http://127.0.0.1:3000/teaching/api-bola
 http://127.0.0.1:3000/learning-paths
 http://127.0.0.1:3000/labs
 http://127.0.0.1:3000/progress
@@ -82,14 +84,15 @@ http://127.0.0.1:3000/guide
 ## 5. Use The Platform
 
 1. Create an account or sign in.
-2. Open Teaching and study the concept, guided practice, observation checklist, and common mistakes.
-3. Open Learning Paths to follow the recommended order.
-4. Select a lab from the sidebar.
-5. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
-6. Open the lab with the `Open Lab` button.
-7. Solve the vulnerability and capture the flag.
-8. Submit the flag in the portal.
-9. Read Root Cause and Defense tabs for explanation and mitigation.
+2. Open Teaching Hub and choose the Start from 0, Web Security, API Security, or Defender Thinking track.
+3. Study the lesson page: beginner explanation, mental model, safe methodology, evidence checklist, fix, quiz, and report note.
+4. Open Learning Paths to follow the recommended order.
+5. Select a lab from the sidebar.
+6. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
+7. Open the lab with the `Open Lab` button.
+8. Solve the vulnerability inside the local Docker lab and capture the flag.
+9. Submit the flag in the portal.
+10. Read the root cause, mitigation, post-lab debrief, and report note.
 
 ## 6. Reset Labs
 

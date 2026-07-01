@@ -4,8 +4,8 @@ import { requireAuthenticatedPage } from "@/lib/auth-guards";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Teaching | VulnMentor",
-  description: "Step-by-step VulnMentor teaching modules before students solve labs.",
+  title: "Teaching Hub | VulnMentor",
+  description: "Foundation lessons, Web security, API security, and defender-thinking modules before students solve labs.",
 };
 
 export default async function TeachingRoute() {

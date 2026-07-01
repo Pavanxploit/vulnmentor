@@ -328,7 +328,12 @@ const screenshots = [
   {
     file: "07-teaching-section.png",
     url: `${portalUrl}/teaching`,
-    expectText: "Step-by-Step Teaching",
+    expectText: "Teaching Hub",
+  },
+  {
+    file: "08-sqli-teaching-lesson.png",
+    url: `${portalUrl}/teaching/sql-injection`,
+    expectText: "Vulnerable Code Walkthrough",
   },
 ];
 

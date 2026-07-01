@@ -7,7 +7,7 @@ This repository is intentionally educational. Labs must run only in the controll
 ## Project Highlights
 
 - Web + API security labs mapped to OWASP concepts
-- Step-by-step teaching modules before each lab
+- Teaching Hub with foundation lessons, guided vulnerability lessons, quizzes, evidence checklists, and report notes
 - CTF-style flag workflow with local progress tracking
 - Vulnerable and secure comparison views
 - Dockerized localhost lab targets
@@ -35,7 +35,9 @@ This repository is intentionally educational. Labs must run only in the controll
 - Challenge filtering by category and difficulty
 - Per-lab Docker reset instructions
 - Vulnerable vs secure implementation comparison on every lab page
-- Teaching mode with concept, guided practice, observation, self-check, and common mistakes
+- Teaching Hub with Start from 0, Web Security, API Security, and Defender Thinking tracks
+- Dynamic lesson pages such as `/teaching/sql-injection`, `/teaching/stored-xss`, `/teaching/api-bola`, `/teaching/jwt-tampering`, `/teaching/rate-limit-bypass`, and `/teaching/excessive-data-exposure`
+- Lesson flow with beginner explanation, mental model, vulnerable code walkthrough, safe local methodology, lab bridge, evidence checklist, mitigation, quiz, report note, and post-lab debrief
 - Flag submission workflow
 - Account progress and attempt history
 - Progressive hints
@@ -88,6 +90,7 @@ http://localhost:3000/register
 http://localhost:3000/login
 http://localhost:3000/dashboard
 http://localhost:3000/teaching
+http://localhost:3000/teaching/sql-injection
 http://localhost:3000/learning-paths
 http://localhost:3000/labs
 http://localhost:3000/progress

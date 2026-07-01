@@ -21,7 +21,16 @@ import {
   UserRound,
 } from "lucide-react";
 import { challenges, type Challenge } from "@/data/challenges";
-import { getTeachingModule, teachingFlow, teachingModules } from "@/data/teaching";
+import {
+  allTeachingLessons,
+  getTeachingLesson,
+  getTeachingModule,
+  recommendedLessonOrder,
+  teachingFlow,
+  teachingModules,
+  teachingTracks,
+  type TeachingLesson,
+} from "@/data/teaching";
 import { Badge, MetricCard, WorkspaceFrame, cn } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatusMap, type RuntimeState } from "./lab-status";
 import { useLearningProgress } from "./progress";
@@ -218,22 +227,90 @@ export function LearningPathsPage() {
 export function TeachingPage() {
   const { progress, student } = useLearningProgress(challenges);
   const completedSet = new Set(progress.completed);
+  const foundationCount = allTeachingLessons.filter((lesson) => lesson.kind === "foundation").length;
+  const linkedLabCount = allTeachingLessons.filter((lesson) => lesson.relatedLab).length;
 
   return (
     <WorkspaceFrame
       activeHref="/teaching"
-      badge="Teaching mode"
-      title="Step-by-Step Teaching"
-      body="Teach the concept first, guide observation, then let students solve the local lab and capture the flag with understanding."
+      badge="Teaching Hub"
+      title="Teaching Hub"
+      body="Start from zero, learn the concept in simple language, practice only inside local Docker labs, capture the flag, then write the root cause and fix."
       showGuide={student?.role === "instructor"}
     >
-      <section className="grid gap-4 md:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-3">
+        <MetricCard label="Foundation lessons" value={`${foundationCount}`} helper="Start from 0 modules" icon={BookOpen} />
+        <MetricCard label="Lab-linked lessons" value={`${linkedLabCount}`} helper="Web and API practicals" icon={FlaskConical} />
+        <MetricCard label="Progress" value={`${progress.completed.length}/${challenges.length}`} helper="Flags solved after learning" icon={Trophy} />
+      </section>
+
+      <section className="rounded-lg border border-red-300/20 bg-red-400/10 p-5">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-red-100" aria-hidden="true" />
+          <div>
+            <h2 className="text-xl font-semibold text-red-100">Safety Boundary</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              Every teaching step is for VulnMentor localhost Docker labs only. Do not test real websites, third-party APIs, or systems where you do not have written permission.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
         {teachingFlow.map((step, index) => (
           <article key={step} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-300/10 text-sm font-semibold text-cyan-100">
               {index + 1}
             </span>
             <p className="mt-3 text-sm leading-6 text-slate-200">{step}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5">
+        <div className="flex items-center gap-2">
+          <Route className="h-5 w-5 text-cyan-100" aria-hidden="true" />
+          <h2 className="text-xl font-semibold text-white">Recommended 0-to-Hero Order</h2>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {recommendedLessonOrder.map((item, index) => (
+            <Link
+              key={item.slug}
+              href={`/teaching/${item.slug}`}
+              className="rounded-lg border border-white/10 bg-slate-950/70 p-3 hover:border-cyan-300/40"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300/10 text-xs font-semibold text-cyan-100">
+                {index + 1}
+              </span>
+              <p className="mt-3 text-sm font-semibold leading-5 text-white">{item.title}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-5">
+        {teachingTracks.map((track) => (
+          <article key={track.title} className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-white">{track.title}</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{track.body}</p>
+              </div>
+              <Badge tone="cyan">{track.slugs.length} lessons</Badge>
+            </div>
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {track.slugs.map((slug) => {
+                const lesson = getTeachingLesson(slug);
+                if (!lesson) return null;
+                return (
+                  <LessonTopicCard
+                    key={`${track.title}-${slug}`}
+                    completedSet={completedSet}
+                    lesson={lesson}
+                  />
+                );
+              })}
+            </div>
           </article>
         ))}
       </section>
@@ -260,14 +337,14 @@ export function TeachingPage() {
                     <Badge tone="amber">{challenge.difficulty}</Badge>
                     <Badge tone={solved ? "green" : "slate"}>{solved ? "Solved" : "Practice pending"}</Badge>
                   </div>
-                  <h2 className="mt-3 text-2xl font-semibold text-white">{module.concept}</h2>
+                  <h2 className="mt-3 text-2xl font-semibold text-white">{challenge.title}</h2>
                   <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">{module.studentOutcome}</p>
                 </div>
                 <Link
-                  href={`/labs/${challenge.id}`}
+                  href={`/teaching/${module.lessonSlug}`}
                   className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
                 >
-                  Open Lab
+                  Start Lesson
                 </Link>
               </div>
 
@@ -291,6 +368,51 @@ export function TeachingPage() {
         })}
       </section>
     </WorkspaceFrame>
+  );
+}
+
+function LessonTopicCard({
+  completedSet,
+  lesson,
+}: {
+  completedSet: Set<string>;
+  lesson: TeachingLesson;
+}) {
+  const relatedLab = lesson.relatedLab;
+  const status =
+    relatedLab && completedSet.has(relatedLab.id)
+      ? "Solved"
+      : relatedLab
+        ? "Lab ready"
+        : "Ready";
+
+  return (
+    <article className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <Badge tone={lesson.kind === "foundation" ? "cyan" : "green"}>{lesson.track}</Badge>
+        <Badge tone={status === "Solved" ? "green" : "slate"}>{status}</Badge>
+      </div>
+      <h3 className="mt-4 text-lg font-semibold text-white">{lesson.title}</h3>
+      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">{lesson.summary}</p>
+      <div className="mt-4 grid gap-2 text-xs text-slate-400">
+        <p>
+          Difficulty: <span className="text-slate-200">{lesson.difficulty}</span>
+        </p>
+        <p>
+          Estimated time: <span className="text-slate-200">{lesson.time}</span>
+        </p>
+        <p>
+          Related lab: <span className="text-slate-200">{relatedLab?.title ?? "Foundation lesson"}</span>
+        </p>
+      </div>
+      <Link
+        href={`/teaching/${lesson.slug}`}
+        className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+      >
+        Start Lesson
+        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+      </Link>
+    </article>
   );
 }
 
