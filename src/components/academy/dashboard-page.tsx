@@ -166,6 +166,7 @@ export function DashboardPage() {
           </div>
           <div className="mt-4 grid gap-3">
             {[
+              ["Study teaching modules", "/teaching"],
               ["Browse labs", "/labs"],
               ["Track progress", "/progress"],
               ["Write notes", "/notes"],

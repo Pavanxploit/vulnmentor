@@ -16,6 +16,12 @@ const featureCards = [
     status: "Live",
   },
   {
+    title: "Teaching Mode",
+    body: "Step-by-step lessons explain concepts before students open targets and capture flags.",
+    icon: BrainCircuit,
+    status: "Live",
+  },
+  {
     title: "Linux Basics",
     body: "Planned foundations for terminal usage, permissions, services, and log inspection.",
     icon: TerminalSquare,
@@ -45,6 +51,7 @@ const reasons = [
 ];
 
 const howItWorks = [
+  { title: "Study lesson", body: "Read the concept, mistakes, and safe local practice steps first.", icon: BrainCircuit },
   { title: "Start Docker labs", body: "Run the local sandbox services before opening a target.", icon: Boxes },
   { title: "Open target", body: "Launch the lab URL from the protected lab page.", icon: TerminalSquare },
   { title: "Use hints", body: "Reveal progressive hints only when you need guidance.", icon: BrainCircuit },
@@ -71,7 +78,7 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <PrimaryLink href="/register">Start Learning</PrimaryLink>
-              <SecondaryLink href="/labs">View Labs</SecondaryLink>
+              <SecondaryLink href="/teaching">View Teaching</SecondaryLink>
             </div>
 
             <div className="mt-10 grid max-w-xl grid-cols-3 gap-3">
@@ -99,7 +106,7 @@ export function LandingPage() {
             title="From setup to secure fix in five steps"
             body="The workflow is designed so a beginner always knows what to do next inside the local lab environment."
           />
-          <div className="mt-8 grid gap-3 md:grid-cols-5">
+          <div className="mt-8 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
             {howItWorks.map((step, index) => (
               <article key={step.title} className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
                 <div className="flex items-center justify-between gap-3">

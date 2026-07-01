@@ -325,6 +325,11 @@ const screenshots = [
     url: `${portalUrl}/guide`,
     expectText: "Instructor Guide Console",
   },
+  {
+    file: "07-teaching-section.png",
+    url: `${portalUrl}/teaching`,
+    expectText: "Step-by-Step Teaching",
+  },
 ];
 
 async function main() {

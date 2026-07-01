@@ -12,6 +12,7 @@ The `screenshots` folder contains GitHub-ready images for the README, project re
 | `screenshots/04-sqli-lab.png` | SQL Injection lab detail page with vulnerable vs secure comparison |
 | `screenshots/05-stored-xss-lab.png` | Stored XSS lab detail page with vulnerable vs secure comparison |
 | `screenshots/06-guide-console.png` | Instructor Guide Console with lab readiness and authoring snapshot |
+| `screenshots/07-teaching-section.png` | Teaching mode with step-by-step concept, practice, observation, and defense guidance |
 
 ## Regenerate Screenshots
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Clock3,
   FileText,
@@ -20,6 +21,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { challenges, type Challenge } from "@/data/challenges";
+import { getTeachingModule, teachingFlow, teachingModules } from "@/data/teaching";
 import { Badge, MetricCard, WorkspaceFrame, cn } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatusMap, type RuntimeState } from "./lab-status";
 import { useLearningProgress } from "./progress";
@@ -121,9 +123,39 @@ export function LearningPathsPage() {
       activeHref="/learning-paths"
       badge="Structured roadmap"
       title="Learning Paths"
-      body="Follow a clean beginner-to-intermediate path instead of opening random labs without context."
+      body="Follow a clean beginner-to-intermediate path: learn the concept, practice safely, solve the lab, then explain the defense."
       showGuide={student?.role === "instructor"}
     >
+      <section className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-cyan-100" aria-hidden="true" />
+              <h2 className="text-xl font-semibold text-white">Teaching comes before flags</h2>
+            </div>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+              Students should complete the teaching checklist before opening the target. This makes flag capture a result of understanding, not guessing.
+            </p>
+          </div>
+          <Link
+            href="/teaching"
+            className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+          >
+            Open Teaching Section
+          </Link>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-5">
+          {teachingFlow.map((step, index) => (
+            <div key={step} className="rounded-md border border-white/10 bg-slate-950/70 p-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300/10 text-xs font-semibold text-cyan-100">
+                {index + 1}
+              </span>
+              <p className="mt-3 text-sm leading-5 text-slate-200">{step}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="grid gap-5">
         {learningPaths.map((path, index) => {
           const completedCount = path.labIds.filter((id) => completedSet.has(id)).length;
@@ -155,6 +187,9 @@ export function LearningPathsPage() {
                       </Badge>
                     </div>
                     <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{lab.summary}</p>
+                    <p className="mt-3 text-xs leading-5 text-cyan-100">
+                      Lesson: {getTeachingModule(lab.id)?.concept ?? "Guided teaching module"}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -175,6 +210,85 @@ export function LearningPathsPage() {
             </div>
           ))}
         </div>
+      </section>
+    </WorkspaceFrame>
+  );
+}
+
+export function TeachingPage() {
+  const { progress, student } = useLearningProgress(challenges);
+  const completedSet = new Set(progress.completed);
+
+  return (
+    <WorkspaceFrame
+      activeHref="/teaching"
+      badge="Teaching mode"
+      title="Step-by-Step Teaching"
+      body="Teach the concept first, guide observation, then let students solve the local lab and capture the flag with understanding."
+      showGuide={student?.role === "instructor"}
+    >
+      <section className="grid gap-4 md:grid-cols-5">
+        {teachingFlow.map((step, index) => (
+          <article key={step} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-300/10 text-sm font-semibold text-cyan-100">
+              {index + 1}
+            </span>
+            <p className="mt-3 text-sm leading-6 text-slate-200">{step}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="grid gap-5">
+        {teachingModules.map((module, index) => {
+          const challenge = challenges.find((item) => item.id === module.challengeId);
+          if (!challenge) return null;
+          const solved = completedSet.has(challenge.id);
+
+          return (
+            <article
+              key={module.challengeId}
+              id={module.challengeId}
+              className="rounded-lg border border-white/10 bg-white/[0.04] p-5"
+            >
+              <div className="grid gap-4 lg:grid-cols-[56px_1fr_auto] lg:items-start">
+                <span className="flex h-12 w-12 items-center justify-center rounded-md bg-emerald-300/10 text-lg font-semibold text-emerald-100">
+                  {index + 1}
+                </span>
+                <div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge tone="cyan">{challenge.category}</Badge>
+                    <Badge tone="amber">{challenge.difficulty}</Badge>
+                    <Badge tone={solved ? "green" : "slate"}>{solved ? "Solved" : "Practice pending"}</Badge>
+                  </div>
+                  <h2 className="mt-3 text-2xl font-semibold text-white">{module.concept}</h2>
+                  <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-300">{module.studentOutcome}</p>
+                </div>
+                <Link
+                  href={`/labs/${challenge.id}`}
+                  className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+                >
+                  Open Lab
+                </Link>
+              </div>
+
+              <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1fr]">
+                <TeachingList title="Teach this concept" items={module.lesson} tone="cyan" />
+                <TeachingList title="Guided local practice" items={module.guidedPractice} tone="green" />
+              </div>
+
+              <div className="mt-4 grid gap-4 xl:grid-cols-3">
+                <TeachingList title="Observe" items={module.observe} tone="slate" />
+                <TeachingList title="Check yourself" items={module.checkYourself} tone="slate" />
+                <TeachingList title="Common mistakes" items={module.commonMistakes} tone="amber" />
+              </div>
+
+              <div className="mt-4 rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4">
+                <p className="text-sm font-semibold text-emerald-100">Defense takeaway</p>
+                <p className="mt-2 text-sm leading-6 text-slate-200">{module.defenseTakeaway}</p>
+              </div>
+            </article>
+          );
+        })}
       </section>
     </WorkspaceFrame>
   );
@@ -415,6 +529,39 @@ export function SettingsPage() {
         </div>
       </section>
     </WorkspaceFrame>
+  );
+}
+
+function TeachingList({
+  items,
+  title,
+  tone,
+}: {
+  items: string[];
+  title: string;
+  tone: "amber" | "cyan" | "green" | "slate";
+}) {
+  const toneClass = {
+    amber: "border-amber-300/20 bg-amber-300/10",
+    cyan: "border-cyan-300/20 bg-cyan-300/10",
+    green: "border-emerald-300/20 bg-emerald-300/10",
+    slate: "border-white/10 bg-slate-950/70",
+  }[tone];
+
+  return (
+    <article className={cn("rounded-lg border p-4", toneClass)}>
+      <h3 className="font-semibold text-white">{title}</h3>
+      <ol className="mt-3 space-y-2">
+        {items.map((item, index) => (
+          <li key={item} className="grid grid-cols-[28px_1fr] gap-3 text-sm leading-6 text-slate-300">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-950/80 text-xs font-semibold text-cyan-100">
+              {index + 1}
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ol>
+    </article>
   );
 }
 

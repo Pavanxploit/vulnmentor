@@ -3,9 +3,10 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft, CheckCircle2, Clock3, Code2, ExternalLink, Flag, HelpCircle, Lightbulb, RefreshCcw, ShieldCheck, Target, TerminalSquare } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, Clock3, Code2, ExternalLink, Flag, HelpCircle, Lightbulb, RefreshCcw, ShieldCheck, Target, TerminalSquare } from "lucide-react";
 import type { Challenge } from "@/data/challenges";
 import { challenges } from "@/data/challenges";
+import { getTeachingModule } from "@/data/teaching";
 import { AcademyTopNav, Badge, cn } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatus } from "./lab-status";
 import { useLearningProgress } from "./progress";
@@ -26,6 +27,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
   const { status, lastChecked, refresh } = useLabStatus(challenge.lab);
   const { progress, student, applyProgress } = useLearningProgress(challenges);
   const isSolved = progress.completed.includes(challenge.id);
+  const teachingModule = getTeachingModule(challenge.id);
   const relatedLabs = useMemo(
     () => challenges.filter((item) => item.category === challenge.category && item.id !== challenge.id).slice(0, 3),
     [challenge],
@@ -139,6 +141,37 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                 </div>
               </article>
             </section>
+
+            {teachingModule ? (
+              <section className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-cyan-100" aria-hidden="true" />
+                      <h2 className="text-xl font-semibold text-white">Learn Before You Solve</h2>
+                    </div>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{teachingModule.studentOutcome}</p>
+                  </div>
+                  <Link
+                    href={`/teaching#${challenge.id}`}
+                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white hover:bg-white/10"
+                  >
+                    Full lesson
+                  </Link>
+                </div>
+
+                <div className="mt-5 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+                  <LessonSteps title="Core idea" items={teachingModule.lesson} />
+                  <LessonSteps title="Step-by-step local practice" items={teachingModule.guidedPractice} />
+                </div>
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                  <CompactLesson title="Observe" items={teachingModule.observe} />
+                  <CompactLesson title="Check yourself" items={teachingModule.checkYourself} />
+                  <CompactLesson title="Avoid these mistakes" items={teachingModule.commonMistakes} />
+                </div>
+              </section>
+            ) : null}
 
             <section className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -330,6 +363,52 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
         </section>
       </div>
     </main>
+  );
+}
+
+function LessonSteps({
+  items,
+  title,
+}: {
+  items: string[];
+  title: string;
+}) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+      <h3 className="font-semibold text-white">{title}</h3>
+      <ol className="mt-3 space-y-3">
+        {items.map((item, index) => (
+          <li key={item} className="grid grid-cols-[30px_1fr] gap-3 text-sm leading-6 text-slate-300">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-cyan-300/10 text-xs font-semibold text-cyan-100">
+              {index + 1}
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ol>
+    </article>
+  );
+}
+
+function CompactLesson({
+  items,
+  title,
+}: {
+  items: string[];
+  title: string;
+}) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <ul className="mt-3 space-y-2">
+        {items.map((item) => (
+          <li key={item} className="flex gap-2 text-xs leading-5 text-slate-300">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </article>
   );
 }
 

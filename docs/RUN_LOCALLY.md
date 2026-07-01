@@ -70,6 +70,7 @@ http://127.0.0.1:3000
 http://127.0.0.1:3000/register
 http://127.0.0.1:3000/login
 http://127.0.0.1:3000/dashboard
+http://127.0.0.1:3000/teaching
 http://127.0.0.1:3000/learning-paths
 http://127.0.0.1:3000/labs
 http://127.0.0.1:3000/progress
@@ -81,13 +82,14 @@ http://127.0.0.1:3000/guide
 ## 5. Use The Platform
 
 1. Create an account or sign in.
-2. Select a lab from the sidebar.
-3. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
-4. Open the lab with the `Open Lab` button.
-5. Solve the vulnerability and capture the flag.
-6. Submit the flag in the portal.
-7. Open the Attack tab to refresh traces.
-8. Read Root Cause and Defense tabs for explanation and mitigation.
+2. Open Teaching and study the concept, guided practice, observation checklist, and common mistakes.
+3. Open Learning Paths to follow the recommended order.
+4. Select a lab from the sidebar.
+5. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
+6. Open the lab with the `Open Lab` button.
+7. Solve the vulnerability and capture the flag.
+8. Submit the flag in the portal.
+9. Read Root Cause and Defense tabs for explanation and mitigation.
 
 ## 6. Reset Labs
 
