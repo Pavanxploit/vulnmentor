@@ -105,6 +105,18 @@ Status: complete
 - [x] Remove plaintext flags from the portal verifier and compare hashed values
 - [x] Add homepage "How it works" section for beginners
 
+## Phase 11: Real Platform Upgrade
+
+- [x] Add visual beginner-to-advanced roadmap page
+- [x] Save lesson quiz results to account progress
+- [x] Save per-lab evidence notebooks
+- [x] Add per-lab Markdown, JSON, and CSV report generator
+- [x] Track hint usage for instructor analytics
+- [x] Add instructor analytics for students, attempts, failed labs, quiz scores, and hint usage
+- [x] Add database migration plan for JSON, SQLite, PostgreSQL, and Supabase
+- [x] Add real-user safe platform architecture documentation
+- [x] Add validation script for challenge metadata, protected routes, safety checks, and required docs
+
 ## Remaining Focus Areas
 
 These are last-phase items. Do not start them until explicitly requested.

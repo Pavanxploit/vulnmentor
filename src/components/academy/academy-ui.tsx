@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Activity, BookOpen, ClipboardCheck, FlaskConical, GraduationCap, LayoutDashboard, NotebookPen, Route, Settings, Trophy } from "lucide-react";
+import { Activity, BookOpen, ClipboardCheck, FlaskConical, GraduationCap, LayoutDashboard, Map, NotebookPen, Route, Settings, Trophy } from "lucide-react";
 
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -8,6 +8,7 @@ export function cn(...classes: Array<string | false | null | undefined>) {
 
 export const sidebarItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Roadmap", href: "/roadmap", icon: Map },
   { label: "Teaching", href: "/teaching", icon: GraduationCap },
   { label: "Learning Paths", href: "/learning-paths", icon: Route },
   { label: "Labs", href: "/labs", icon: FlaskConical },
@@ -135,6 +136,9 @@ export function AcademyTopNav() {
           </Link>
           <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/teaching">
             Teaching
+          </Link>
+          <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/roadmap">
+            Roadmap
           </Link>
           <Link className="rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white" href="/learning-paths">
             Learning Paths

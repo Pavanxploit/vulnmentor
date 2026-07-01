@@ -82,7 +82,8 @@ export function useLearningProgress(challenges: Challenge[]) {
           correct && !current.completed.includes(challengeId)
             ? [...current.completed, challengeId]
             : current.completed;
-        const nextProgress = {
+        const nextProgress: ProgressState = {
+          ...current,
           completed,
           attempts: [attempt, ...current.attempts].slice(0, 50),
         };
@@ -150,6 +151,12 @@ function readStoredProgress(): ProgressState {
     return {
       completed: Array.isArray(parsed.completed) ? parsed.completed : [],
       attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
+      quizResults: Array.isArray(parsed.quizResults) ? parsed.quizResults : [],
+      hintViews: Array.isArray(parsed.hintViews) ? parsed.hintViews : [],
+      evidenceNotebooks: Array.isArray(parsed.evidenceNotebooks)
+        ? parsed.evidenceNotebooks
+        : [],
+      reports: Array.isArray(parsed.reports) ? parsed.reports : [],
     };
   } catch {
     return emptyProgress;

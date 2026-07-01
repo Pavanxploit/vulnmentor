@@ -70,6 +70,7 @@ http://127.0.0.1:3000
 http://127.0.0.1:3000/register
 http://127.0.0.1:3000/login
 http://127.0.0.1:3000/dashboard
+http://127.0.0.1:3000/roadmap
 http://127.0.0.1:3000/teaching
 http://127.0.0.1:3000/teaching/sql-injection
 http://127.0.0.1:3000/teaching/api-bola
@@ -85,14 +86,17 @@ http://127.0.0.1:3000/guide
 
 1. Create an account or sign in.
 2. Open Teaching Hub and choose the Start from 0, Web Security, API Security, or Defender Thinking track.
-3. Study the lesson page: beginner explanation, mental model, safe methodology, evidence checklist, fix, quiz, and report note.
-4. Open Learning Paths to follow the recommended order.
-5. Select a lab from the sidebar.
-6. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
-7. Open the lab with the `Open Lab` button.
-8. Solve the vulnerability inside the local Docker lab and capture the flag.
-9. Submit the flag in the portal.
-10. Read the root cause, mitigation, post-lab debrief, and report note.
+3. Open Roadmap to understand the beginner-to-advanced order.
+4. Study the lesson page: beginner explanation, mental model, safe methodology, evidence checklist, fix, quiz, and report note.
+5. Open Learning Paths to follow the recommended order.
+6. Select a lab from the sidebar.
+7. Filter by category or difficulty if you want only Web, API, Easy, Medium, or Hard labs.
+8. Open the lab with the `Open Lab` button.
+9. Solve the vulnerability inside the local Docker lab and capture the flag.
+10. Submit the flag in the portal.
+11. Save your evidence notebook on the lab page.
+12. Generate a Markdown, JSON, or CSV report from the report generator.
+13. Read the root cause, mitigation, post-lab debrief, and report note.
 
 ## 6. Reset Labs
 
@@ -144,3 +148,15 @@ npm run screenshots
 ```
 
 If Docker labs do not start, open Docker Desktop first and wait for the engine to become ready.
+
+## 9. Validate Before Demo
+
+Run these checks before a college demo or GitHub push:
+
+```bash
+npm run lint
+npm run validate
+npm run build
+```
+
+The validation script checks challenge metadata, teaching coverage, protected instructor routes, flag safety, and required documentation.

@@ -13,6 +13,7 @@ const screenshotDir = process.env.SCREENSHOT_DIR
 const portalUrl = (process.env.PORTAL_URL ?? "http://localhost:3000").replace(/\/$/, "");
 const defaultWidth = Number(process.env.SCREENSHOT_WIDTH ?? 1440);
 const defaultHeight = Number(process.env.SCREENSHOT_HEIGHT ?? 1100);
+let capturedCount = 0;
 
 const browserCandidates = [
   process.env.BROWSER_EXECUTABLE,
@@ -52,15 +53,21 @@ class CdpClient {
         }
         waiter.resolve(message.result ?? {});
       });
+      this.ws.addEventListener("close", () => {
+        for (const waiter of this.pending.values()) {
+          waiter.reject(new Error("Browser debugging connection closed."));
+        }
+        this.pending.clear();
+      });
     });
   }
 
   send(method, params = {}) {
     const id = this.nextId;
     this.nextId += 1;
-    this.ws.send(JSON.stringify({ id, method, params }));
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
+      this.ws.send(JSON.stringify({ id, method, params }));
     });
   }
 
@@ -195,7 +202,6 @@ async function authenticateDemoUser(client) {
           name: "Guide User",
           email: credentials.email,
           password: credentials.password,
-          usn: "GUIDE",
           role: "instructor"
         })
       });
@@ -291,7 +297,8 @@ async function capture(client, item) {
     captureBeyondViewport: true,
   });
   await writeFile(path.join(screenshotDir, item.file), Buffer.from(screenshot.data, "base64"));
-  console.log(`captured ${item.file}`);
+  capturedCount += 1;
+  process.stdout.write(`captured ${item.file}\n`);
 }
 
 const screenshots = [
@@ -335,13 +342,20 @@ const screenshots = [
     url: `${portalUrl}/teaching/sql-injection`,
     expectText: "Vulnerable Code Walkthrough",
   },
+  {
+    file: "09-roadmap.png",
+    url: `${portalUrl}/roadmap`,
+    expectText: "Cybersecurity Learning Roadmap",
+  },
 ];
 
 async function main() {
+  process.stdout.write(`starting screenshot capture at ${portalUrl}\n`);
   await mkdir(screenshotDir, { recursive: true });
   const port = await getFreePort();
   const userDataDir = path.join(tmpdir(), `vulnmentor-screenshots-${Date.now()}`);
   const browserExecutable = findBrowser();
+  process.stdout.write(`using browser ${browserExecutable}\n`);
 
   const browser = spawn(
     browserExecutable,
@@ -362,19 +376,30 @@ async function main() {
   );
 
   try {
+    process.stdout.write("waiting for browser debugging endpoint\n");
     await waitForChrome(port);
+    process.stdout.write("browser debugging endpoint ready\n");
     const target = await createPage(port);
+    process.stdout.write("created browser page\n");
     const client = new CdpClient(target.webSocketDebuggerUrl);
     await client.open();
+    process.stdout.write("connected to browser page\n");
     await client.send("Page.enable");
     await client.send("Runtime.enable");
     await client.send("Emulation.setDefaultBackgroundColorOverride", {
       color: { r: 255, g: 255, b: 255, a: 1 },
     });
+    process.stdout.write("authenticating demo user\n");
     await authenticateDemoUser(client);
+    process.stdout.write("demo user authenticated\n");
 
     for (const item of screenshots) {
+      process.stdout.write(`capturing ${item.file}\n`);
       await capture(client, item);
+    }
+
+    if (capturedCount !== screenshots.length) {
+      throw new Error(`Expected ${screenshots.length} screenshots but captured ${capturedCount}.`);
     }
 
     client.close();
@@ -387,5 +412,5 @@ async function main() {
 
 main().catch((error) => {
   console.error(error.message);
-  process.exitCode = 1;
+  process.exit(1);
 });

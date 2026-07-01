@@ -21,6 +21,7 @@ import {
   TerminalSquare,
 } from "lucide-react";
 import type { TeachingLesson } from "@/data/teaching";
+import type { ProgressState } from "@/lib/progress-types";
 import { Badge, WorkspaceFrame, cn } from "./academy-ui";
 
 type TeachingLessonPageProps = {
@@ -39,7 +40,57 @@ const lessonAnchors = [
 
 export function TeachingLessonPage({ lesson, nextLesson }: TeachingLessonPageProps) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [quizMessage, setQuizMessage] = useState("");
+  const [savingQuiz, setSavingQuiz] = useState(false);
   const relatedLab = lesson.relatedLab;
+  const answeredCount = Object.keys(answers).length;
+  const quizScore = lesson.quiz.reduce(
+    (score, question, index) => score + (answers[index] === question.answer ? 1 : 0),
+    0,
+  );
+
+  async function saveQuizResult() {
+    if (answeredCount < lesson.quiz.length) {
+      setQuizMessage("Answer every quiz question before saving your score.");
+      return;
+    }
+
+    setSavingQuiz(true);
+    setQuizMessage("");
+
+    try {
+      const response = await fetch("/api/assessments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lessonSlug: lesson.slug,
+          score: quizScore,
+          total: lesson.quiz.length,
+          answers: lesson.quiz.map((question, index) => ({
+            question: question.question,
+            selected: answers[index],
+            correct: answers[index] === question.answer,
+          })),
+        }),
+      });
+      const result = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+        progress?: ProgressState;
+      };
+
+      if (!response.ok || !result.ok) {
+        setQuizMessage(result.message ?? "Sign in before saving quiz results.");
+        return;
+      }
+
+      setQuizMessage(`Quiz saved: ${quizScore}/${lesson.quiz.length}.`);
+    } catch {
+      setQuizMessage("Could not save quiz result. Check the portal server and try again.");
+    } finally {
+      setSavingQuiz(false);
+    }
+  }
 
   return (
     <WorkspaceFrame
@@ -243,6 +294,29 @@ export function TeachingLessonPage({ lesson, nextLesson }: TeachingLessonPagePro
                   </article>
                 );
               })}
+            </div>
+            <div className="mt-5 rounded-lg border border-white/10 bg-slate-950/70 p-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white">Score preview</p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    {quizScore}/{lesson.quiz.length} correct, {answeredCount}/{lesson.quiz.length} answered.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={saveQuizResult}
+                  disabled={savingQuiz}
+                  className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savingQuiz ? "Saving..." : "Save Quiz Score"}
+                </button>
+              </div>
+              {quizMessage ? (
+                <p className="mt-3 rounded-md border border-white/10 bg-slate-950 p-3 text-sm leading-6 text-slate-300">
+                  {quizMessage}
+                </p>
+              ) : null}
             </div>
           </section>
 

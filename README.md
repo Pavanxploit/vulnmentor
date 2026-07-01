@@ -8,11 +8,14 @@ This repository is intentionally educational. Labs must run only in the controll
 
 - Web + API security labs mapped to OWASP concepts
 - Teaching Hub with foundation lessons, guided vulnerability lessons, quizzes, evidence checklists, and report notes
+- Roadmap page from beginner web basics to Web, API, and defender thinking
 - CTF-style flag workflow with local progress tracking
 - Vulnerable and secure comparison views
 - Dockerized localhost lab targets
 - Guarded offline AI Mentor for safe learning guidance
-- Instructor guide console and progress report with JSON/CSV export
+- Evidence notebook and Markdown/JSON/CSV report generator
+- Instructor guide console, analytics, hint usage, and JSON/CSV export
+- Database migration plan for JSON, SQLite, PostgreSQL, or Supabase
 - Public-safe documentation for college demos and portfolio review
 
 ## Screenshots
@@ -38,9 +41,13 @@ This repository is intentionally educational. Labs must run only in the controll
 - Teaching Hub with Start from 0, Web Security, API Security, and Defender Thinking tracks
 - Dynamic lesson pages such as `/teaching/sql-injection`, `/teaching/stored-xss`, `/teaching/api-bola`, `/teaching/jwt-tampering`, `/teaching/rate-limit-bypass`, and `/teaching/excessive-data-exposure`
 - Lesson flow with beginner explanation, mental model, vulnerable code walkthrough, safe local methodology, lab bridge, evidence checklist, mitigation, quiz, report note, and post-lab debrief
+- Visual roadmap page at `/roadmap`
 - Flag submission workflow
 - Account progress and attempt history
 - Progressive hints
+- Saved quiz results and instructor hint-usage analytics
+- Evidence notebook on each lab page
+- Per-lab report generator with Markdown, JSON, and CSV output
 - Offline AI Mentor with lab-only guardrails
 - Safe refusal behavior for real-world target requests
 - OWASP mapping and post-solve debrief guidance
@@ -50,6 +57,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Protected dashboard, teaching, learning paths, labs, progress, notes, settings, flag submission, and guide console routes
 - Backend-backed account progress using local JSON database storage
 - Guide Console challenge management
+- Guide Console instructor analytics for students, attempts, failed labs, quiz scores, and hint usage
 - Instructor-only report/guide tooling
 - Student progress report and attempt logs dashboard
 - Exportable JSON/CSV demo data
@@ -58,6 +66,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - Root-cause explanation
 - Vulnerable vs secure code comparison
 - Mitigation checklist
+- Validation script for challenge metadata, protected routes, safety checks, and docs
 
 ## Architecture
 
@@ -89,6 +98,7 @@ http://localhost:3000
 http://localhost:3000/register
 http://localhost:3000/login
 http://localhost:3000/dashboard
+http://localhost:3000/roadmap
 http://localhost:3000/teaching
 http://localhost:3000/teaching/sql-injection
 http://localhost:3000/learning-paths
@@ -187,6 +197,8 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 - [Safety and ethics](./SAFETY.md)
 - [Run locally](./docs/RUN_LOCALLY.md)
 - [Deployment model](./docs/DEPLOYMENT_MODEL.md)
+- [Real user platform plan](./docs/REAL_USER_PLATFORM_PLAN.md)
+- [Database plan](./docs/DATABASE_PLAN.md)
 - [Architecture](./docs/ARCHITECTURE.md)
 - [Demo script](./docs/DEMO_SCRIPT.md)
 - [Portfolio showcase notes](./docs/PORTFOLIO_SHOWCASE.md)
@@ -203,6 +215,7 @@ The build plan is tracked in [ROADMAP.md](./ROADMAP.md).
 
 ```bash
 npm run lint
+npm run validate
 npm run build
 npm run screenshots
 ```

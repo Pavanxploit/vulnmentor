@@ -15,6 +15,13 @@ It helps a guide review the lab catalog before a class demo or project evaluatio
 - Docker service name and local runtime port
 - Hint coverage, root-cause notes, secure-code coverage, and mitigation notes
 - Authoring snapshot for the selected challenge
+- Total and active student counts
+- Lab completion percentage
+- Average saved quiz score
+- Most failed labs
+- Most used hints
+- Recent flag attempts
+- Student-wise progress, attempts, accuracy, quiz score, and last active time
 
 ## Challenge Source
 
@@ -61,6 +68,15 @@ Before presenting or adding a new lab:
 
 Public registration creates student accounts. Instructor access should be created only through the protected setup/API flow by sending `role: "instructor"` with `VULNMENTOR_INSTRUCTOR_CODE`. Local `.test` instructor accounts are allowed outside production for screenshot and demo automation.
 
+## Exports
+
+The console can export instructor analytics as:
+
+- CSV for spreadsheet review
+- JSON for project demo evidence or later dashboard integrations
+
+These exports should be used only for authorized class or project review.
+
 ## Current Scope
 
-The console is a presentation-ready catalog and review dashboard. Challenge editing is intentionally code-controlled in this phase so lab definitions stay versioned through Git.
+The console is a presentation-ready catalog, readiness board, and instructor analytics dashboard. Challenge editing is intentionally code-controlled in this phase so lab definitions stay versioned through Git.

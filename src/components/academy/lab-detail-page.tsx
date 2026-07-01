@@ -10,7 +10,7 @@ import { getNextTeachingLesson, getTeachingLesson, getTeachingModule } from "@/d
 import { AcademyTopNav, Badge, cn } from "./academy-ui";
 import { statusLabel, statusTone, useLabStatus } from "./lab-status";
 import { useLearningProgress } from "./progress";
-import type { ProgressState } from "@/lib/progress-types";
+import type { EvidenceNotebookRecord, ProgressState } from "@/lib/progress-types";
 
 type VerifyFlagResponse = {
   ok: boolean;
@@ -19,11 +19,30 @@ type VerifyFlagResponse = {
   progress: ProgressState | null;
 };
 
+type EvidenceForm = {
+  normalRequest: string;
+  modifiedRequest: string;
+  vulnerableResponse: string;
+  secureResponse: string;
+  traceProof: string;
+  impactSummary: string;
+  rootCause: string;
+  fixRecommendation: string;
+};
+
+type ReportFormat = "markdown" | "json" | "csv";
+
 export function LabDetailPage({ challenge }: { challenge: Challenge }) {
   const [hintCount, setHintCount] = useState(0);
   const [flagValue, setFlagValue] = useState("");
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [evidenceMessage, setEvidenceMessage] = useState("");
+  const [savingEvidence, setSavingEvidence] = useState(false);
+  const [reportContent, setReportContent] = useState("");
+  const [reportFileName, setReportFileName] = useState("");
+  const [reportMessage, setReportMessage] = useState("");
+  const [generatingReport, setGeneratingReport] = useState<ReportFormat | null>(null);
   const { status, lastChecked, refresh } = useLabStatus(challenge.lab);
   const { progress, student, applyProgress } = useLearningProgress(challenges);
   const isSolved = progress.completed.includes(challenge.id);
@@ -34,9 +53,39 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
     () => challenges.filter((item) => item.category === challenge.category && item.id !== challenge.id).slice(0, 3),
     [challenge],
   );
+  const savedEvidence = progress.evidenceNotebooks.find((item) => item.challengeId === challenge.id);
 
   function revealHint() {
-    setHintCount((count) => Math.min(count + 1, challenge.hints.length));
+    const nextHintCount = Math.min(hintCount + 1, challenge.hints.length);
+    if (nextHintCount === hintCount) return;
+
+    setHintCount(nextHintCount);
+    if (student) {
+      void recordHintView(nextHintCount);
+    }
+  }
+
+  async function recordHintView(hintIndex: number) {
+    try {
+      const response = await fetch("/api/hints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: challenge.id,
+          hintIndex,
+        }),
+      });
+      const result = (await response.json()) as {
+        ok: boolean;
+        progress?: ProgressState;
+      };
+
+      if (response.ok && result.ok && result.progress) {
+        applyProgress(result.progress);
+      }
+    } catch {
+      // Hint tracking is useful for instructors, but revealing the hint should not fail the lab flow.
+    }
   }
 
   async function submitFlag(event: FormEvent<HTMLFormElement>) {
@@ -75,6 +124,87 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function saveEvidence(nextEvidence: EvidenceForm) {
+    setSavingEvidence(true);
+    setEvidenceMessage("");
+
+    try {
+      const response = await fetch("/api/evidence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: challenge.id,
+          ...nextEvidence,
+        }),
+      });
+      const result = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+        progress?: ProgressState;
+      };
+
+      if (!response.ok || !result.ok) {
+        setEvidenceMessage(result.message ?? "Sign in before saving evidence.");
+        return;
+      }
+
+      if (result.progress) applyProgress(result.progress);
+      setEvidenceMessage("Evidence notebook saved to your account.");
+    } catch {
+      setEvidenceMessage("Could not save evidence. Check the portal server and try again.");
+    } finally {
+      setSavingEvidence(false);
+    }
+  }
+
+  async function generateReport(format: ReportFormat) {
+    setGeneratingReport(format);
+    setReportMessage("");
+
+    try {
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challengeId: challenge.id,
+          format,
+        }),
+      });
+      const result = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+        fileName?: string;
+        content?: string;
+        progress?: ProgressState;
+      };
+
+      if (!response.ok || !result.ok || !result.content) {
+        setReportMessage(result.message ?? "Sign in before generating reports.");
+        return;
+      }
+
+      if (result.progress) applyProgress(result.progress);
+      setReportContent(result.content);
+      setReportFileName(result.fileName ?? `vulnmentor-${challenge.id}-report.txt`);
+      setReportMessage("Report generated from your saved evidence and lab metadata.");
+    } catch {
+      setReportMessage("Could not generate report. Check the portal server and try again.");
+    } finally {
+      setGeneratingReport(null);
+    }
+  }
+
+  function downloadReport() {
+    if (!reportContent) return;
+    const blob = new Blob([reportContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = reportFileName || `vulnmentor-${challenge.id}-report.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -257,6 +387,79 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                   </a>
                 ) : null}
               </div>
+            </section>
+
+            <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
+              <div className="flex items-center gap-2">
+                <TerminalSquare className="h-5 w-5 text-cyan-200" aria-hidden="true" />
+                <h2 className="text-xl font-semibold text-white">Lab Readiness Manager</h2>
+              </div>
+              <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                <CommandCard label="Start all labs" value="docker compose up --build -d" />
+                <CommandCard label="Reset this lab" value={`docker compose restart ${challenge.lab?.serviceName ?? "<service-name>"}`} />
+                <CommandCard label="Reset full sandbox" value="docker compose down; docker compose up --build -d" />
+              </div>
+              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                {[
+                  "Docker not running: open Docker Desktop and wait for the engine.",
+                  "Port already in use: stop the old container or change the mapped port.",
+                  "Lab offline: run the start command and refresh status.",
+                  "Permission error: restart Docker Desktop and terminal.",
+                  "Browser cannot open target: try 127.0.0.1 instead of localhost.",
+                ].map((item) => (
+                  <div key={item} className="rounded-lg border border-white/10 bg-slate-950/70 p-3 text-xs leading-5 text-slate-300">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <EvidenceNotebookSection
+              key={`${challenge.id}-${savedEvidence?.updatedAt ?? "draft"}`}
+              initialEvidence={savedEvidence ? evidenceFromSaved(savedEvidence) : createDefaultEvidence(challenge)}
+              isSaved={Boolean(savedEvidence)}
+              message={evidenceMessage}
+              onSave={saveEvidence}
+              saving={savingEvidence}
+            />
+
+            <section className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-5">
+              <div className="flex items-center gap-2">
+                <Flag className="h-5 w-5 text-emerald-100" aria-hidden="true" />
+                <h2 className="text-xl font-semibold text-white">Report Generator</h2>
+              </div>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+                Generate a portfolio-ready local-lab report using the lab metadata, secure comparison, and your saved evidence notebook.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {(["markdown", "json", "csv"] as const).map((format) => (
+                  <button
+                    key={format}
+                    type="button"
+                    onClick={() => generateReport(format)}
+                    disabled={Boolean(generatingReport)}
+                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/15 bg-white/5 px-4 text-sm font-semibold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {generatingReport === format ? "Generating..." : `Generate ${format.toUpperCase()}`}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={downloadReport}
+                  disabled={!reportContent}
+                  className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Download Report
+                </button>
+              </div>
+              {reportMessage ? (
+                <p className="mt-4 rounded-md border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-200">{reportMessage}</p>
+              ) : null}
+              {reportContent ? (
+                <pre className="mt-4 max-h-[360px] overflow-auto rounded-lg border border-white/10 bg-slate-950 p-4 text-xs leading-6 text-slate-200">
+                  <code>{reportContent}</code>
+                </pre>
+              ) : null}
             </section>
 
             <section className="grid gap-5 xl:grid-cols-2">
@@ -483,6 +686,125 @@ function ReportNoteCard({ template }: { template: string }) {
   );
 }
 
+function EvidenceNotebookSection({
+  initialEvidence,
+  isSaved,
+  message,
+  onSave,
+  saving,
+}: {
+  initialEvidence: EvidenceForm;
+  isSaved: boolean;
+  message: string;
+  onSave: (evidence: EvidenceForm) => void;
+  saving: boolean;
+}) {
+  const [evidence, setEvidence] = useState(initialEvidence);
+
+  function updateEvidence(field: keyof EvidenceForm, value: string) {
+    setEvidence((current) => ({ ...current, [field]: value }));
+  }
+
+  return (
+    <section className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Code2 className="h-5 w-5 text-cyan-100" aria-hidden="true" />
+            <h2 className="text-xl font-semibold text-white">Evidence Notebook</h2>
+          </div>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+            Save clean proof for this local lab. This becomes the source for your report generator.
+          </p>
+        </div>
+        <Badge tone={isSaved ? "green" : "slate"}>{isSaved ? "Saved" : "Draft"}</Badge>
+      </div>
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        <EvidenceField label="Normal request" value={evidence.normalRequest} onChange={(value) => updateEvidence("normalRequest", value)} />
+        <EvidenceField label="Modified request" value={evidence.modifiedRequest} onChange={(value) => updateEvidence("modifiedRequest", value)} />
+        <EvidenceField label="Vulnerable response" value={evidence.vulnerableResponse} onChange={(value) => updateEvidence("vulnerableResponse", value)} />
+        <EvidenceField label="Secure response" value={evidence.secureResponse} onChange={(value) => updateEvidence("secureResponse", value)} />
+        <EvidenceField label="Trace/log proof" value={evidence.traceProof} onChange={(value) => updateEvidence("traceProof", value)} />
+        <EvidenceField label="Impact summary" value={evidence.impactSummary} onChange={(value) => updateEvidence("impactSummary", value)} />
+        <EvidenceField label="Root cause" value={evidence.rootCause} onChange={(value) => updateEvidence("rootCause", value)} />
+        <EvidenceField label="Fix recommendation" value={evidence.fixRecommendation} onChange={(value) => updateEvidence("fixRecommendation", value)} />
+      </div>
+      <div className="mt-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <button
+          type="button"
+          onClick={() => onSave(evidence)}
+          disabled={saving}
+          className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-400 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {saving ? "Saving..." : "Save Evidence"}
+        </button>
+        {message ? (
+          <p className="rounded-md border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-200">
+            {message}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function EvidenceField({
+  label,
+  onChange,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  return (
+    <label className="block text-sm font-semibold text-slate-200">
+      {label}
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 min-h-28 w-full resize-y rounded-md border border-white/10 bg-slate-950 p-3 text-sm leading-6 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300"
+      />
+    </label>
+  );
+}
+
+function CommandCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyCommand() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <article className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
+      <p className="text-xs font-semibold uppercase text-slate-400">{label}</p>
+      <code className="mt-2 block overflow-x-auto rounded-md bg-slate-950 px-3 py-3 text-xs leading-5 text-emerald-200">
+        {value}
+      </code>
+      <button
+        type="button"
+        onClick={copyCommand}
+        className="mt-3 inline-flex min-h-9 items-center justify-center rounded-md border border-white/15 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10"
+      >
+        {copied ? "Copied" : "Copy command"}
+      </button>
+    </article>
+  );
+}
+
 function SecureComparisonSection({ challenge }: { challenge: Challenge }) {
   return (
     <section className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-5">
@@ -585,4 +907,30 @@ function InfoPill({
       <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
   );
+}
+
+function createDefaultEvidence(challenge: Challenge): EvidenceForm {
+  return {
+    normalRequest: challenge.console?.[0] ?? `Open ${challenge.lab?.baseUrl ?? "the local target"}`,
+    modifiedRequest: "Change one user-controlled value inside the VulnMentor local lab.",
+    vulnerableResponse: "Record the vulnerable response difference here.",
+    secureResponse: "Record how the secure endpoint or secure code blocks the same issue.",
+    traceProof: challenge.lab?.tracesUrl ?? "Open the trace URL and record the proof.",
+    impactSummary: challenge.impact,
+    rootCause: challenge.rootCause,
+    fixRecommendation: challenge.mitigation[0] ?? challenge.teaching.reportTemplate,
+  };
+}
+
+function evidenceFromSaved(evidence: EvidenceNotebookRecord): EvidenceForm {
+  return {
+    normalRequest: evidence.normalRequest,
+    modifiedRequest: evidence.modifiedRequest,
+    vulnerableResponse: evidence.vulnerableResponse,
+    secureResponse: evidence.secureResponse,
+    traceProof: evidence.traceProof,
+    impactSummary: evidence.impactSummary,
+    rootCause: evidence.rootCause,
+    fixRecommendation: evidence.fixRecommendation,
+  };
 }
