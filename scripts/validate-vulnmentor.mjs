@@ -109,10 +109,115 @@ function validateNewPlatformRoutes() {
     "src/app/api/instructor/analytics/route.ts",
     "src/app/api/reports/route.ts",
     "src/app/api/system/database/route.ts",
+    "src/app/api/labs/health/route.ts",
+    "src/app/api/labs/restart/route.ts",
     "src/app/roadmap/page.tsx",
     "src/components/academy/roadmap-page.tsx",
+    "src/components/academy/lab-health-panel.tsx",
+    "src/app/api/classes/route.ts",
+    "src/app/api/classes/join/route.ts",
+    "src/app/api/classes/[id]/route.ts",
+    "src/app/api/classes/[id]/students/[studentId]/route.ts",
+    "src/components/academy/class-manager-panel.tsx",
+    "src/components/academy/my-classes-panel.tsx",
     "src/lib/report-generator.ts",
+    "src/lib/lab-health.ts",
+    "src/lib/store/classes-store.ts",
   ].forEach(requireFile);
+}
+
+function validateClassManagement() {
+  const schema = readProjectFile("src/lib/store/schema.sql");
+
+  if (schema.includes("CREATE TABLE IF NOT EXISTS classes") &&
+      schema.includes("CREATE TABLE IF NOT EXISTS class_enrollments")) {
+    pass("class tables are declared idempotently");
+  } else {
+    fail("class schema", "classes or class_enrollments table is missing");
+  }
+
+  // The composite primary key is what stops a student joining twice, and the
+  // foreign keys are what keep an enrolment from outliving its class or user.
+  if (schema.includes("PRIMARY KEY (class_id, user_id)")) {
+    pass("duplicate enrolment is blocked by a composite primary key");
+  } else {
+    fail("class enrolment", "missing composite primary key on class_enrollments");
+  }
+
+  if (schema.includes("idx_classes_instructor") && schema.includes("idx_class_enrollments_user")) {
+    pass("class lookups are indexed");
+  } else {
+    fail("class indexes", "missing instructor or enrolment index");
+  }
+
+  const access = readProjectFile("src/lib/class-access.ts");
+  if (access.includes("rejectUntrustedOrigin") && access.includes('role !== "instructor"')) {
+    pass("class routes share an origin-checked instructor guard");
+  } else {
+    fail("class guards", "shared guard is missing an origin check or role check");
+  }
+
+  // Instructor mutations must be scoped by instructor_id so a valid class id
+  // belonging to someone else cannot be acted on.
+  const store = readProjectFile("src/lib/store/classes-store.ts");
+  const scopedStatements = countMatches(store, /instructor_id = \?/g);
+  if (scopedStatements >= 4) {
+    pass(`class mutations are scoped to the owning instructor (${scopedStatements} statements)`);
+  } else {
+    fail("class ownership", `only ${scopedStatements} statements scope by instructor_id`);
+  }
+
+  if (store.includes("DELETE FROM class_enrollments") && !store.includes("DELETE FROM users")) {
+    pass("removing a student deletes only the enrolment row");
+  } else {
+    fail("student removal", "removal path may touch accounts or progress");
+  }
+}
+
+function validateLabHealthManager() {
+  const restartRoute = readProjectFile("src/app/api/labs/restart/route.ts");
+
+  if (restartRoute.includes('role !== "instructor"')) {
+    pass("lab restart route is instructor protected");
+  } else {
+    fail("lab restart protection", "missing instructor role guard");
+  }
+
+  if (restartRoute.includes("rejectUntrustedOrigin") && restartRoute.includes("checkRateLimit")) {
+    pass("lab restart route is origin checked and rate limited");
+  } else {
+    fail("lab restart hardening", "missing origin check or rate limit");
+  }
+
+  const labHealth = readProjectFile("src/lib/lab-health.ts");
+
+  // Service names must come from the challenge catalog, never from the request,
+  // and the command must be spawned with an argument array rather than a shell
+  // string so nothing from a request can become part of a command line.
+  if (labHealth.includes("getKnownServiceNames") && labHealth.includes("known.includes(serviceName)")) {
+    pass("lab restart validates service names against an allowlist");
+  } else {
+    fail("lab restart allowlist", "service name is not checked against known compose services");
+  }
+
+  if (labHealth.includes("execFile") && !labHealth.includes("shell: true")) {
+    pass("docker commands run without a shell");
+  } else {
+    fail("docker command safety", "commands may be run through a shell");
+  }
+
+  // A bare "4010:4010" publishes on every interface, which would put the
+  // deliberately vulnerable labs on the classroom network. Each mapping must
+  // pin the host side to loopback.
+  const compose = readProjectFile("docker-compose.yml");
+  const mappings = [...compose.matchAll(/^\s*-\s*"([^"]+)"\s*$/gm)].map((match) => match[1]);
+  const exposed = mappings.filter((mapping) => !mapping.startsWith("127.0.0.1:"));
+
+  if (mappings.length > 0 && exposed.length === 0) {
+    pass(`all ${mappings.length} lab ports are bound to loopback only`);
+  } else {
+    fail("lab exposure", `published on all interfaces: ${exposed.join(", ") || "no port mappings found"}`);
+  }
 }
 
 function validateDocs() {
@@ -127,6 +232,8 @@ function validateDocs() {
 validateChallengeCatalog();
 validateRoutesAndSafety();
 validateNewPlatformRoutes();
+validateLabHealthManager();
+validateClassManagement();
 validateDocs();
 
 const failed = checks.filter((check) => !check.ok);

@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { recordProgressAttempt } from "@/lib/progress-store";
 import { getSessionId } from "@/lib/session-cookie";
+import { rejectUntrustedOrigin } from "@/lib/request-origin";
+import {
+  checkRateLimit,
+  flagRateLimit,
+  getClientKey,
+  rateLimitResponseHeaders,
+} from "@/lib/rate-limit";
 
 const flagHashesByChallenge = new Map<string, string>([
   ["web-sqli-login", "bd1078d83ec94b44d7891a6935439768e3cf59c1735fe6a893cb157b8255ee4a"],
@@ -13,11 +20,26 @@ const flagHashesByChallenge = new Map<string, string>([
 ]);
 
 export async function POST(request: NextRequest) {
+  // A stored payload in the XSS lab runs on another localhost port, which
+  // SameSite=Lax treats as the same site. Without this check it could submit
+  // flags using the student's own session.
+  const untrustedOrigin = rejectUntrustedOrigin(request);
+  if (untrustedOrigin) return untrustedOrigin;
+
   const sessionId = getSessionId(request);
   if (!sessionId) {
     return NextResponse.json(
       { ok: false, message: "Sign in before submitting flags." },
       { status: 401 },
+    );
+  }
+
+  const limit = checkRateLimit(`flag:${getClientKey(request)}:${sessionId}`, flagRateLimit);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Slow down. Review the lab behavior before submitting again." },
+      { status: 429, headers: rateLimitResponseHeaders(limit) },
     );
   }
 

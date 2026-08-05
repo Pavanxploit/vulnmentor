@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveEvidenceNotebook } from "@/lib/progress-store";
 import { getSessionId } from "@/lib/session-cookie";
+import { rejectUntrustedOrigin } from "@/lib/request-origin";
 
 export async function POST(request: NextRequest) {
+  const untrustedOrigin = rejectUntrustedOrigin(request);
+  if (untrustedOrigin) return untrustedOrigin;
+
   const sessionId = getSessionId(request);
   if (!sessionId) {
     return NextResponse.json({ ok: false, message: "Sign in before saving evidence." }, { status: 401 });

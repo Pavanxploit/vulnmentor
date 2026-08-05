@@ -117,6 +117,15 @@ Status: complete
 - [x] Add real-user safe platform architecture documentation
 - [x] Add validation script for challenge metadata, protected routes, safety checks, and required docs
 
+## Phase 12: SQLite Storage
+
+- [x] Extract storage behind an adapter interface
+- [x] Add SQLite adapter with WAL, transactions, and indexes
+- [x] Keep the JSON store as a supported fallback provider
+- [x] Add one-time migration script with snapshot and verification
+- [x] Refuse to start SQLite empty while unmigrated JSON data exists
+- [x] Update database documentation
+
 ## Remaining Focus Areas
 
 These are last-phase items. Do not start them until explicitly requested.
@@ -129,7 +138,7 @@ These are last-phase items. Do not start them until explicitly requested.
 ## Stretch Goals
 
 - [ ] Challenge template generator
-- [ ] Docker lab health manager
-- [ ] Multi-user class mode
+- [x] Docker lab health manager
+- [x] Multi-user class mode
 - [ ] Lab import/export
 - [ ] CI checks for lab startup

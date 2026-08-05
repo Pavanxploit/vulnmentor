@@ -55,7 +55,7 @@ This repository is intentionally educational. Labs must run only in the controll
 - HTTP-only session cookie with production secure-cookie mode
 - Student and instructor roles
 - Protected dashboard, teaching, learning paths, labs, progress, notes, settings, flag submission, and guide console routes
-- Backend-backed account progress using local JSON database storage
+- Backend-backed account progress in a local SQLite database, with the original JSON store kept as a fallback
 - Guide Console challenge management
 - Guide Console instructor analytics for students, attempts, failed labs, quiz scores, and hint usage
 - Instructor-only report/guide tooling
@@ -115,7 +115,21 @@ The stable pre-redesign version is marked in Git as `backup-before-academy-ui-bf
 Account sessions and progress are stored locally in:
 
 ```text
-.data/vulnmentor-progress.json
+.data/vulnmentor.sqlite
+```
+
+SQLite is the default. The original flat-file store is still supported for quick
+demos or hand-inspecting data:
+
+```bash
+VULNMENTOR_DATABASE_PROVIDER=json npm run dev
+```
+
+Upgrading an existing install is a single command, covered in
+[docs/DATABASE_PLAN.md](docs/DATABASE_PLAN.md):
+
+```bash
+npm run migrate:sqlite
 ```
 
 The `.data` folder is ignored by Git because it contains local user accounts, password hashes, sessions, and attempt history.

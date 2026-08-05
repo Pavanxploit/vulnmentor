@@ -4,7 +4,7 @@ services:
       context: ./labs/sql-injection-login
     container_name: vulnmentor-sqli-lab
     ports:
-      - "4010:4010"
+      - "127.0.0.1:4010:4010"
     restart: unless-stopped
 
   api-broken-auth:
@@ -12,7 +12,7 @@ services:
       context: ./labs/api-broken-auth
     container_name: vulnmentor-api-bola-lab
     ports:
-      - "4020:4020"
+      - "127.0.0.1:4020:4020"
     restart: unless-stopped
 
   api-jwt-tampering:
@@ -20,7 +20,7 @@ services:
       context: ./labs/api-jwt-tampering
     container_name: vulnmentor-api-jwt-lab
     ports:
-      - "4030:4030"
+      - "127.0.0.1:4030:4030"
     restart: unless-stopped
 
   api-rate-limit-bypass:
@@ -28,7 +28,7 @@ services:
       context: ./labs/api-rate-limit-bypass
     container_name: vulnmentor-api-rate-limit-lab
     ports:
-      - "4040:4040"
+      - "127.0.0.1:4040:4040"
     restart: unless-stopped
 
   api-excessive-data-exposure:
@@ -36,7 +36,7 @@ services:
       context: ./labs/api-excessive-data-exposure
     container_name: vulnmentor-api-data-exposure-lab
     ports:
-      - "4050:4050"
+      - "127.0.0.1:4050:4050"
     restart: unless-stopped
 
   stored-xss-comment:
@@ -44,5 +44,5 @@ services:
       context: ./labs/stored-xss-comment
     container_name: vulnmentor-stored-xss-lab
     ports:
-      - "4060:4060"
+      - "127.0.0.1:4060:4060"
     restart: unless-stopped

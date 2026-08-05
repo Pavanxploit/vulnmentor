@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loginAccount } from "@/lib/progress-store";
 import { sessionCookieName } from "@/lib/session-cookie";
+import { rejectUntrustedOrigin } from "@/lib/request-origin";
+import {
+  authRateLimit,
+  checkRateLimit,
+  getClientKey,
+  rateLimitResponseHeaders,
+} from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const untrustedOrigin = rejectUntrustedOrigin(request);
+  if (untrustedOrigin) return untrustedOrigin;
+
   let body: unknown;
 
   try {
@@ -18,6 +28,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { ok: false, message: "Email and password are required." },
       { status: 400 },
+    );
+  }
+
+  // Keyed on the target account as well as the caller. On a local install every
+  // request shares one client key, so limiting by caller alone would let one
+  // student's failed logins lock out the whole class.
+  const limitKey = `login:${getClientKey(request)}:${body.email.trim().toLowerCase()}`;
+  const limit = checkRateLimit(limitKey, authRateLimit);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Too many sign-in attempts. Wait a moment and try again." },
+      { status: 429, headers: rateLimitResponseHeaders(limit) },
     );
   }
 

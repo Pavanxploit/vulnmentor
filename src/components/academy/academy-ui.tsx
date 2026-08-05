@@ -83,6 +83,127 @@ export function MetricCard({
   );
 }
 
+/**
+ * Shared loading, empty, and error primitives.
+ *
+ * They exist so every page expresses these three states the same way. Pages
+ * previously rendered zeroed data while a fetch was still in flight, which read
+ * as "you have no progress" until the real numbers arrived.
+ */
+
+export function Skeleton({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("block animate-pulse rounded bg-white/10", className)}
+    />
+  );
+}
+
+/** Matches MetricCard's exact shape so the layout does not shift when data lands. */
+export function MetricCardSkeleton({ icon: Icon }: { icon?: LucideIcon }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-4 w-20" />
+        {Icon ? <Icon className="h-4 w-4 text-cyan-200/40" aria-hidden="true" /> : null}
+      </div>
+      <Skeleton className="mt-3 h-8 w-24" />
+      <Skeleton className="mt-2 h-4 w-28" />
+    </div>
+  );
+}
+
+export function RowSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="space-y-3" role="status" aria-label="Loading">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="rounded-md border border-white/10 bg-slate-950/70 p-3">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="mt-2 h-3 w-1/4" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function Spinner({ className }: { className?: string }) {
+  return (
+    <span
+      role="status"
+      aria-label="Loading"
+      className={cn(
+        "inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-cyan-200",
+        className,
+      )}
+    />
+  );
+}
+
+/**
+ * An empty state should tell the student what to do next, not just report
+ * absence, so the action link is part of the component rather than optional
+ * decoration callers remember to add.
+ */
+export function EmptyState({
+  icon: Icon,
+  title,
+  body,
+  actionLabel,
+  actionHref,
+  onAction,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  body: string;
+  actionLabel?: string;
+  /** Use for navigation. Pass `onAction` instead for in-page actions like clearing filters. */
+  actionHref?: string;
+  onAction?: () => void;
+}) {
+  const actionClass =
+    "mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-400 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-300";
+
+  return (
+    <div className="flex flex-col items-center rounded-lg border border-dashed border-white/15 bg-slate-950/40 px-5 py-8 text-center">
+      {Icon ? (
+        <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-cyan-300/10">
+          <Icon className="h-5 w-5 text-cyan-200" aria-hidden="true" />
+        </span>
+      ) : null}
+      <p className="text-sm font-semibold text-white">{title}</p>
+      <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{body}</p>
+      {actionLabel && actionHref ? (
+        <Link href={actionHref} className={actionClass}>
+          {actionLabel}
+        </Link>
+      ) : null}
+      {actionLabel && !actionHref && onAction ? (
+        <button type="button" onClick={onAction} className={actionClass}>
+          {actionLabel}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export function ErrorNotice({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-md border border-rose-300/25 bg-rose-300/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm leading-6 text-rose-100">{message}</p>
+      {onRetry ? (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-md border border-rose-200/30 bg-rose-200/10 px-3 text-xs font-semibold text-rose-50 hover:bg-rose-200/20"
+        >
+          Try again
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function PrimaryLink({
   href,
   children,
