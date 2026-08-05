@@ -98,7 +98,36 @@ http://127.0.0.1:3000/guide
 12. Generate a Markdown, JSON, or CSV report from the report generator.
 13. Read the root cause, mitigation, post-lab debrief, and report note.
 
-## 6. Reset Labs
+## 6. Lab Health Manager
+
+The portal checks every lab for you. Status appears on the Dashboard, on each lab page, and in the Guide Console.
+
+| Status | Meaning |
+| --- | --- |
+| **Up** | The lab's `/health` endpoint answered. |
+| **Starting** | Docker reports the container running, but it is not answering yet. Wait a few seconds. |
+| **Down** | The container is stopped, missing, or refusing connections. |
+| **Unknown** | No Docker lab is defined for that challenge yet. |
+
+Each entry shows the target URL, why it is in that state, and when it was last checked.
+
+Checks run on the server and are cached for 10 seconds, so a full class watching the dashboard produces one probe round rather than one per student per lab. The browser refreshes every 15 seconds, and **Refresh** forces an immediate re-read.
+
+Instructors also get **Restart all** and a per-lab **Restart** in the Guide Console and on the Dashboard. Restart is instructor-only on purpose: labs are shared, so a student restarting one would wipe the traces, comments, and counters that classmates are part-way through capturing. Students still reset their own work with the commands below.
+
+The restart endpoint accepts only the compose service names declared in `src/data/challenges.ts` and runs Docker with an argument array rather than a shell string, so nothing from a request can reach a command line.
+
+If Docker Desktop is not running, the panel says so and falls back to reporting whether each lab answers on its port.
+
+## 6b. Classes And Batches
+
+Instructors create classes in the Guide Console and share a seven-character join code. Students enter it under **My Classes** on their dashboard.
+
+Joining is optional and affects nothing about practice: all labs, lessons, and progress work the same whether or not a student has joined a class. Removing a student from a class never touches their account or results.
+
+Requires the SQLite provider. See [GUIDE_CONSOLE.md](GUIDE_CONSOLE.md#classes-and-batches).
+
+## 7. Reset Labs
 
 Each lab page shows a reset command for its Docker service. Use it when traces, comments, tokens, counters, or captured proof should be cleared.
 
@@ -118,9 +147,41 @@ docker compose down
 docker compose up --build -d
 ```
 
-Account progress is stored in `.data/vulnmentor-progress.json`. Public registration creates student accounts. Instructor accounts should be created only through the protected setup/API flow with `role: "instructor"` and `VULNMENTOR_INSTRUCTOR_CODE`.
+Account progress is stored in `.data/vulnmentor.sqlite`. Upgrading an existing JSON install takes one command — see [DATABASE_PLAN.md](DATABASE_PLAN.md):
 
-## 7. Stop Everything
+```bash
+npm run migrate:sqlite
+```
+
+To run against the original flat-file store instead, set `VULNMENTOR_DATABASE_PROVIDER=json`.
+
+Public registration creates student accounts. Instructor accounts should be created only through the protected setup/API flow with `role: "instructor"` and `VULNMENTOR_INSTRUCTOR_CODE`.
+
+Seeding `.test` instructor accounts for demos now requires an explicit opt-in, `VULNMENTOR_ALLOW_TEST_INSTRUCTORS=true`. See [GUIDE_CONSOLE.md](GUIDE_CONSOLE.md#access) for the full rule.
+
+The store keeps rolling snapshots in `.data/backups/` (one per 15 minutes of write activity, newest 20 retained). They are gitignored along with the rest of `.data/`.
+
+## Platform Security Controls
+
+These protect the portal itself. They are separate from the deliberate vulnerabilities inside the labs.
+
+| Control | Where | Behaviour |
+| --- | --- | --- |
+| Rate limiting | login, register, flag submission | 10 sign-ins per account per 5 min, 5 registrations per 15 min, 30 flags per min. Returns `429` with `Retry-After`. |
+| Origin checking | every state-changing route | Rejects requests whose `Origin` is not the portal. |
+| CSV hardening | every export | Cells starting `=`, `+`, `-`, or `@` are prefixed so spreadsheets treat them as text. |
+| Evidence containment | Markdown reports | Raw captures render as indented code; prose fields escape HTML. |
+| Idle session timeout | session lookup | Sessions die after 3 days unused, independent of the 14-day cap. |
+
+`SameSite=Lax` alone does not isolate the portal from the labs: a site is scheme plus registrable domain, so `127.0.0.1:4060` and `localhost:3000` count as the same site and the cookie would ride along. The `Origin` check is what actually blocks a payload landed in a lab from driving the portal API with a student's session.
+
+Verify the controls with the portal running:
+
+```bash
+npm run security-check
+```
+
+## 8. Stop Everything
 
 Stop the portal with `Ctrl + C` in the terminal running `npm run dev`.
 
@@ -130,7 +191,7 @@ Stop Docker labs:
 docker compose down
 ```
 
-## 8. Common Fixes
+## 9. Common Fixes
 
 Use `127.0.0.1` instead of `localhost` if a browser tab keeps loading.
 
@@ -149,7 +210,7 @@ npm run screenshots
 
 If Docker labs do not start, open Docker Desktop first and wait for the engine to become ready.
 
-## 9. Validate Before Demo
+## 10. Validate Before Demo
 
 Run these checks before a college demo or GitHub push:
 

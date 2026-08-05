@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { registerAccount } from "@/lib/progress-store";
 import { sessionCookieName } from "@/lib/session-cookie";
+import { rejectUntrustedOrigin } from "@/lib/request-origin";
+import {
+  checkRateLimit,
+  getClientKey,
+  rateLimitResponseHeaders,
+  registerRateLimit,
+} from "@/lib/rate-limit";
 import type { UserRole } from "@/lib/progress-types";
 
 export async function POST(request: NextRequest) {
+  const untrustedOrigin = rejectUntrustedOrigin(request);
+  if (untrustedOrigin) return untrustedOrigin;
+
+  // Registration runs scrypt before touching the database, so an unbounded
+  // caller could pin the CPU without ever creating an account.
+  const limit = checkRateLimit(`register:${getClientKey(request)}`, registerRateLimit);
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Too many accounts created recently. Wait a moment and try again." },
+      { status: 429, headers: rateLimitResponseHeaders(limit) },
+    );
+  }
+
   let body: unknown;
 
   try {

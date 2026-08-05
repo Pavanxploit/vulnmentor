@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Activity, ArrowRight, Database, Flag, RefreshCcw, Route, ShieldCheck, Signal, Target, Trophy } from "lucide-react";
 import { challenges } from "@/data/challenges";
-import { Badge, MetricCard, WorkspaceFrame } from "./academy-ui";
+import { Badge, EmptyState, MetricCard, MetricCardSkeleton, RowSkeleton, WorkspaceFrame } from "./academy-ui";
+import { LabHealthPanel } from "./lab-health-panel";
+import { MyClassesPanel } from "./my-classes-panel";
 import { statusLabel, statusTone, useLabStatusMap } from "./lab-status";
 import { useLearningProgress } from "./progress";
 
@@ -29,16 +31,18 @@ export function DashboardPage() {
   const { statuses, refresh } = useLabStatusMap(challenges);
   const {
     progress,
+    progressMode,
     student,
     completion,
     earnedPoints,
     totalPoints,
     accuracy,
   } = useLearningProgress(challenges);
+  const isLoadingProgress = progressMode === "loading";
   const completedSet = new Set(progress.completed);
   const nextLab = challenges.find((challenge) => !completedSet.has(challenge.id)) ?? challenges[0];
   const recentAttempts = progress.attempts.slice(0, 4);
-  const onlineCount = challenges.filter((challenge) => statuses[challenge.id] === "online").length;
+  const onlineCount = challenges.filter((challenge) => statuses[challenge.id] === "up").length;
 
   return (
     <WorkspaceFrame
@@ -63,16 +67,27 @@ export function DashboardPage() {
         </button>
       }
     >
-      <section className="grid gap-4 md:grid-cols-4">
-        <MetricCard label="Progress" value={`${completion}%`} helper={`${progress.completed.length}/${challenges.length} labs solved`} icon={Trophy} />
-        <MetricCard label="Points" value={`${earnedPoints}/${totalPoints}`} helper="Local demo score" icon={Flag} />
-        <MetricCard label="Accuracy" value={`${accuracy}%`} helper={`${progress.attempts.length} flag attempts`} icon={Target} />
-        <MetricCard
-          label={student ? "Progress store" : "Lab status"}
-          value={student ? "Account" : `${onlineCount}/${challenges.length}`}
-          helper={student ? "Local account database" : "Docker targets online"}
-          icon={student ? Database : Signal}
-        />
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        {isLoadingProgress ? (
+          <>
+            <MetricCardSkeleton icon={Trophy} />
+            <MetricCardSkeleton icon={Flag} />
+            <MetricCardSkeleton icon={Target} />
+            <MetricCardSkeleton icon={Signal} />
+          </>
+        ) : (
+          <>
+            <MetricCard label="Progress" value={`${completion}%`} helper={`${progress.completed.length}/${challenges.length} labs solved`} icon={Trophy} />
+            <MetricCard label="Points" value={`${earnedPoints}/${totalPoints}`} helper="Local demo score" icon={Flag} />
+            <MetricCard label="Accuracy" value={`${accuracy}%`} helper={`${progress.attempts.length} flag attempts`} icon={Target} />
+            <MetricCard
+              label={student ? "Progress store" : "Lab status"}
+              value={student ? "Account" : `${onlineCount}/${challenges.length}`}
+              helper={student ? "Local account database" : "Docker targets online"}
+              icon={student ? Database : Signal}
+            />
+          </>
+        )}
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
@@ -126,6 +141,10 @@ export function DashboardPage() {
         </section>
       </section>
 
+      {student && student.role !== "instructor" ? <MyClassesPanel /> : null}
+
+      <LabHealthPanel canRestart={student?.role === "instructor"} />
+
       <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
         <article className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
           <div className="flex items-center justify-between gap-3">
@@ -138,13 +157,15 @@ export function DashboardPage() {
             </Link>
           </div>
           <div className="mt-4 space-y-3">
-            {recentAttempts.length ? (
+            {isLoadingProgress ? (
+              <RowSkeleton count={3} />
+            ) : recentAttempts.length ? (
               recentAttempts.map((attempt) => {
                 const challenge = challenges.find((item) => item.id === attempt.challengeId);
                 return (
                   <div key={attempt.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-slate-950/70 p-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">{challenge?.title ?? attempt.challengeId}</p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{challenge?.title ?? attempt.challengeId}</p>
                       <p className="mt-1 text-xs text-slate-400">{new Date(attempt.submittedAt).toLocaleString()}</p>
                     </div>
                     <Badge tone={attempt.correct ? "green" : "red"}>{attempt.correct ? "Accepted" : "Retry"}</Badge>
@@ -152,9 +173,13 @@ export function DashboardPage() {
                 );
               })
             ) : (
-              <div className="rounded-lg border border-dashed border-white/15 p-5 text-sm leading-6 text-slate-400">
-                No activity yet. Open a lab, capture a flag, and submit it from the lab page.
-              </div>
+              <EmptyState
+                icon={Flag}
+                title="No flag attempts yet"
+                body="Open a lab, capture the flag from the local Docker target, and submit it. Your attempts and accuracy will appear here."
+                actionLabel="Browse labs"
+                actionHref="/labs"
+              />
             )}
           </div>
         </article>

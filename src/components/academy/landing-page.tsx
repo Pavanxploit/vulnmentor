@@ -106,7 +106,7 @@ export function LandingPage() {
             title="From setup to secure fix in five steps"
             body="The workflow is designed so a beginner always knows what to do next inside the local lab environment."
           />
-          <div className="mt-8 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             {howItWorks.map((step, index) => (
               <article key={step.title} className="rounded-lg border border-white/10 bg-slate-950/70 p-4">
                 <div className="flex items-center justify-between gap-3">

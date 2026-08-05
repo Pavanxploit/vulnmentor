@@ -6,6 +6,7 @@ VulnMentor is an educational cybersecurity sandbox. It is designed for college p
 
 - Run the included labs on your own laptop.
 - Practice only against the provided localhost services.
+- Lab ports are published to `127.0.0.1` only, so the vulnerable containers are not reachable from the classroom or campus network. `npm run validate` fails if any mapping loses that binding.
 - Use the labs to understand vulnerability root causes and secure fixes.
 - Use Burp Suite, Postman, browser tools, or scripts only against the local lab URLs.
 

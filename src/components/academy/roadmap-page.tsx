@@ -68,7 +68,7 @@ export function RoadmapPage() {
       body="A visual path from basic web concepts to safe local labs, evidence collection, root cause analysis, secure fixes, and reporting."
       showGuide={student?.role === "instructor"}
     >
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <MetricCard label="Lesson checks" value={`${completedLessons}/${totalLessons}`} helper="Saved quiz results" icon={BookOpen} />
         <MetricCard label="Solved labs" value={`${progress.completed.length}/${challenges.length}`} helper="Flags accepted" icon={CheckCircle2} />
         <MetricCard label="Evidence notes" value={`${progress.evidenceNotebooks.length}`} helper="Lab notebooks saved" icon={ShieldCheck} />

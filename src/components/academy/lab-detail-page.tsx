@@ -7,8 +7,8 @@ import { ArrowLeft, BookOpen, CheckCircle2, Clock3, Code2, ExternalLink, Flag, H
 import type { Challenge } from "@/data/challenges";
 import { challenges } from "@/data/challenges";
 import { getNextTeachingLesson, getTeachingLesson, getTeachingModule } from "@/data/teaching";
-import { AcademyTopNav, Badge, cn } from "./academy-ui";
-import { statusLabel, statusTone, useLabStatus } from "./lab-status";
+import { AcademyTopNav, Badge, Spinner, cn } from "./academy-ui";
+import { formatLastChecked, statusLabel, statusTone, useLabStatus } from "./lab-status";
 import { useLearningProgress } from "./progress";
 import type { EvidenceNotebookRecord, ProgressState } from "@/lib/progress-types";
 
@@ -43,7 +43,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
   const [reportFileName, setReportFileName] = useState("");
   const [reportMessage, setReportMessage] = useState("");
   const [generatingReport, setGeneratingReport] = useState<ReportFormat | null>(null);
-  const { status, lastChecked, refresh } = useLabStatus(challenge.lab);
+  const { status, detail: statusDetail, lastChecked, refresh } = useLabStatus(challenge.lab);
   const { progress, student, applyProgress } = useLearningProgress(challenges);
   const isSolved = progress.completed.includes(challenge.id);
   const teachingModule = getTeachingModule(challenge.id);
@@ -372,7 +372,12 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                     {challenge.lab?.baseUrl ?? "Planned lab target"}
                   </code>
                   <p className="mt-2 text-xs text-slate-400">
-                    Last checked: {lastChecked ? lastChecked.toLocaleTimeString() : "waiting for first check"}
+                    <span className="font-semibold text-slate-300">{statusLabel(status)}</span>
+                    {statusDetail ? ` — ${statusDetail}` : ""}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {formatLastChecked(lastChecked)}
+                    {lastChecked ? ` at ${lastChecked.toLocaleTimeString()}` : ""}
                   </p>
                 </div>
                 {challenge.lab ? (
@@ -700,6 +705,17 @@ function EvidenceNotebookSection({
   saving: boolean;
 }) {
   const [evidence, setEvidence] = useState(initialEvidence);
+  // The form ships pre-filled with prompt text, so "non-empty" says nothing
+  // about whether the student has written anything. The baseline is captured at
+  // mount and compared against, and the component is remounted by key whenever
+  // the saved record changes, so it stays in step.
+  const [baseline] = useState(initialEvidence);
+  const fieldKeys = Object.keys(evidence) as Array<keyof EvidenceForm>;
+  const writtenCount = fieldKeys.filter((key) => {
+    const value = evidence[key].trim();
+    if (!value) return false;
+    return isSaved || value !== baseline[key].trim();
+  }).length;
 
   function updateEvidence(field: keyof EvidenceForm, value: string) {
     setEvidence((current) => ({ ...current, [field]: value }));
@@ -717,8 +733,21 @@ function EvidenceNotebookSection({
             Save clean proof for this local lab. This becomes the source for your report generator.
           </p>
         </div>
-        <Badge tone={isSaved ? "green" : "slate"}>{isSaved ? "Saved" : "Draft"}</Badge>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Badge tone={isSaved ? "green" : "slate"}>{isSaved ? "Saved" : "Draft"}</Badge>
+          <Badge tone={writtenCount === fieldKeys.length ? "green" : "cyan"}>
+            {writtenCount}/{fieldKeys.length} {isSaved ? "fields" : "written"}
+          </Badge>
+        </div>
       </div>
+
+      {!isSaved && writtenCount === 0 ? (
+        <p className="mt-4 rounded-md border border-dashed border-white/20 bg-slate-950/40 p-3 text-sm leading-6 text-slate-400">
+          No evidence written yet. Each field below starts as a prompt — replace it with what you
+          actually observed in the local lab. These eight fields become your generated report.
+        </p>
+      ) : null}
+
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <EvidenceField label="Normal request" value={evidence.normalRequest} onChange={(value) => updateEvidence("normalRequest", value)} />
         <EvidenceField label="Modified request" value={evidence.modifiedRequest} onChange={(value) => updateEvidence("modifiedRequest", value)} />
@@ -734,8 +763,9 @@ function EvidenceNotebookSection({
           type="button"
           onClick={() => onSave(evidence)}
           disabled={saving}
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-emerald-400 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-emerald-400 px-5 text-sm font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
         >
+          {saving ? <Spinner className="border-slate-900/30 border-t-slate-900" /> : null}
           {saving ? "Saving..." : "Save Evidence"}
         </button>
         {message ? (

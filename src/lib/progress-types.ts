@@ -71,11 +71,32 @@ export type ProgressState = {
   reports: GeneratedReportRecord[];
 };
 
-export const emptyProgress: ProgressState = {
-  completed: [],
-  attempts: [],
-  quizResults: [],
-  hintViews: [],
-  evidenceNotebooks: [],
-  reports: [],
-};
+/**
+ * Always build a fresh value. Handing the same object to several accounts means
+ * they share the arrays inside it, so one student's records could surface in
+ * another student's progress.
+ */
+export function createEmptyProgress(): ProgressState {
+  return {
+    completed: [],
+    attempts: [],
+    quizResults: [],
+    hintViews: [],
+    evidenceNotebooks: [],
+    reports: [],
+  };
+}
+
+/**
+ * Read-only placeholder for client components that render before progress has
+ * loaded. Frozen so an accidental push fails loudly instead of leaking state
+ * across renders. Use `createEmptyProgress()` for anything that gets stored.
+ */
+export const emptyProgress: ProgressState = freezeProgress(createEmptyProgress());
+
+function freezeProgress(progress: ProgressState): ProgressState {
+  for (const value of Object.values(progress)) {
+    Object.freeze(value);
+  }
+  return Object.freeze(progress);
+}

@@ -8,8 +8,12 @@ import {
   type ReportFormat,
 } from "@/lib/report-generator";
 import { getSessionId } from "@/lib/session-cookie";
+import { rejectUntrustedOrigin } from "@/lib/request-origin";
 
 export async function POST(request: NextRequest) {
+  const untrustedOrigin = rejectUntrustedOrigin(request);
+  if (untrustedOrigin) return untrustedOrigin;
+
   const sessionId = getSessionId(request);
   if (!sessionId) {
     return NextResponse.json({ ok: false, message: "Sign in before generating reports." }, { status: 401 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -21,7 +21,19 @@ import {
   Users,
 } from "lucide-react";
 import { challenges, type Challenge } from "@/data/challenges";
-import { Badge, DashboardSidebar, MetricCard, SectionHeading, cn } from "./academy-ui";
+import { csvDocument } from "@/lib/csv-safe";
+import {
+  Badge,
+  DashboardSidebar,
+  ErrorNotice,
+  MetricCard,
+  MetricCardSkeleton,
+  SectionHeading,
+  Skeleton,
+  cn,
+} from "./academy-ui";
+import { ClassManagerPanel } from "./class-manager-panel";
+import { LabHealthPanel } from "./lab-health-panel";
 
 const allCategories = ["All categories", ...Array.from(new Set(challenges.map((challenge) => challenge.category)))] as const;
 const allDifficulties = ["All difficulty", "Easy", "Medium", "Hard"] as const;
@@ -69,34 +81,43 @@ export function GuideConsolePage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(challenges[0]?.id ?? "");
   const [analytics, setAnalytics] = useState<InstructorAnalytics | null>(null);
-  const [analyticsMessage, setAnalyticsMessage] = useState("Loading instructor analytics...");
+  const [analyticsMessage, setAnalyticsMessage] = useState("");
+  // Loading and failure used to share one message string, so the panel could not
+  // tell "still fetching" from "fetch failed" and never offered a retry.
+  const [analyticsState, setAnalyticsState] = useState<"loading" | "ready" | "error">("loading");
+
+  const loadAnalytics = useCallback(async () => {
+    setAnalyticsState("loading");
+    setAnalyticsMessage("");
+
+    try {
+      const response = await fetch("/api/instructor/analytics", { cache: "no-store" });
+      const result = (await response.json()) as {
+        ok: boolean;
+        message?: string;
+        analytics?: InstructorAnalytics;
+      };
+
+      if (!response.ok || !result.ok || !result.analytics) {
+        setAnalyticsMessage(result.message ?? "Could not load instructor analytics.");
+        setAnalyticsState("error");
+        return;
+      }
+
+      setAnalytics(result.analytics);
+      setAnalyticsState("ready");
+    } catch {
+      setAnalyticsMessage("Could not reach the portal to load instructor analytics.");
+      setAnalyticsState("error");
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    async function loadAnalytics() {
-      try {
-        const response = await fetch("/api/instructor/analytics", { cache: "no-store" });
-        const result = (await response.json()) as {
-          ok: boolean;
-          message?: string;
-          analytics?: InstructorAnalytics;
-        };
-        if (cancelled) return;
-        if (!response.ok || !result.ok || !result.analytics) {
-          setAnalyticsMessage(result.message ?? "Could not load instructor analytics.");
-          return;
-        }
-        setAnalytics(result.analytics);
-        setAnalyticsMessage("");
-      } catch {
-        if (!cancelled) setAnalyticsMessage("Could not load instructor analytics.");
-      }
-    }
-    void loadAnalytics();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    // Deferred so the first paint is not a cascading render, matching how the
+    // other data hooks in this codebase kick off their initial fetch.
+    const start = window.setTimeout(() => void loadAnalytics(), 0);
+    return () => window.clearTimeout(start);
+  }, [loadAnalytics]);
 
   const filteredChallenges = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -154,24 +175,41 @@ export function GuideConsolePage() {
             </div>
           </div>
 
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
             <MetricCard label="Live labs" value={`${dockerLabCount}/${challenges.length}`} helper="Docker-backed targets" icon={FlaskConical} />
             <MetricCard label="Total points" value={`${totalPoints}`} helper="CTF score pool" icon={Trophy} />
             <MetricCard label="Secure coverage" value={`${secureComparisonCount}/${challenges.length}`} helper="Vulnerable vs secure code" icon={ShieldCheck} />
             <MetricCard label="Skill tags" value={`${skillCount}`} helper="Mapped learning outcomes" icon={BookMarked} />
           </section>
 
-          <section className="grid gap-4 md:grid-cols-4">
-            <MetricCard label="Total students" value={`${analytics?.totalStudents ?? 0}`} helper="Registered student accounts" icon={Users} />
-            <MetricCard label="Active students" value={`${analytics?.activeStudents ?? 0}`} helper="Seen in last 7 days" icon={Activity} />
-            <MetricCard label="Lab completion" value={`${analytics?.labCompletionPercentage ?? 0}%`} helper="Across all student accounts" icon={BarChart3} />
-            <MetricCard label="Avg quiz score" value={`${analytics?.averageQuizScore ?? 0}%`} helper="Saved lesson assessments" icon={ClipboardCheck} />
+          <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            {analytics ? (
+              <>
+                <MetricCard label="Total students" value={`${analytics.totalStudents}`} helper="Registered student accounts" icon={Users} />
+                <MetricCard label="Active students" value={`${analytics.activeStudents}`} helper="Seen in last 7 days" icon={Activity} />
+                <MetricCard label="Lab completion" value={`${analytics.labCompletionPercentage}%`} helper="Across all student accounts" icon={BarChart3} />
+                <MetricCard label="Avg quiz score" value={`${analytics.averageQuizScore}%`} helper="Saved lesson assessments" icon={ClipboardCheck} />
+              </>
+            ) : (
+              <>
+                <MetricCardSkeleton icon={Users} />
+                <MetricCardSkeleton icon={Activity} />
+                <MetricCardSkeleton icon={BarChart3} />
+                <MetricCardSkeleton icon={ClipboardCheck} />
+              </>
+            )}
           </section>
 
           <InstructorAnalyticsPanel
             analytics={analytics}
             message={analyticsMessage}
+            state={analyticsState}
+            onRetry={() => void loadAnalytics()}
           />
+
+          <ClassManagerPanel />
+
+          <LabHealthPanel canRestart />
 
           <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
@@ -386,9 +424,13 @@ function SelectedChallengePanel({ challenge }: { challenge: Challenge }) {
 function InstructorAnalyticsPanel({
   analytics,
   message,
+  state,
+  onRetry,
 }: {
   analytics: InstructorAnalytics | null;
   message: string;
+  state: "loading" | "ready" | "error";
+  onRetry: () => void;
 }) {
   function exportJson() {
     if (!analytics) return;
@@ -409,7 +451,7 @@ function InstructorAnalyticsPanel({
         row.lastSeenAt,
       ]),
     ];
-    downloadText("vulnmentor-instructor-report.csv", rows.map((row) => row.map(csvEscape).join(",")).join("\n"));
+    downloadText("vulnmentor-instructor-report.csv", csvDocument(rows));
   }
 
   return (
@@ -446,11 +488,28 @@ function InstructorAnalyticsPanel({
         </div>
       </div>
 
-      {message ? (
-        <p className="mt-4 rounded-md border border-white/10 bg-slate-950/70 p-3 text-sm text-slate-300">{message}</p>
+      {state === "error" ? (
+        <div className="mt-4">
+          <ErrorNotice message={message || "Could not load instructor analytics."} onRetry={onRetry} />
+        </div>
       ) : null}
 
-      {analytics ? (
+      {state === "loading" ? (
+        <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_360px]">
+          <div className="space-y-2" role="status" aria-label="Loading instructor analytics">
+            <Skeleton className="h-9 w-full" />
+            {Array.from({ length: 4 }, (_, index) => (
+              <Skeleton key={index} className="h-14 w-full" />
+            ))}
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </div>
+      ) : null}
+
+      {state === "ready" && analytics ? (
         <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_360px]">
           <div className="overflow-x-auto">
             <table className="min-w-[780px] table-fixed border-collapse text-left text-sm">
@@ -482,7 +541,8 @@ function InstructorAnalyticsPanel({
                 ) : (
                   <tr>
                     <td colSpan={6} className="px-3 py-5 text-sm text-slate-400">
-                      No student accounts yet.
+                      No student accounts yet. Students appear here as soon as they register and
+                      submit their first flag.
                     </td>
                   </tr>
                 )}
@@ -569,9 +629,6 @@ function downloadText(fileName: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
-function csvEscape(value: string) {
-  return `"${value.replace(/"/g, '""')}"`;
-}
 
 function CoverageRow({ label, value, ready }: { label: string; value: string; ready: boolean }) {
   return (

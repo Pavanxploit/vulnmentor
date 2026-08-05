@@ -31,7 +31,16 @@ import {
   teachingTracks,
   type TeachingLesson,
 } from "@/data/teaching";
-import { Badge, MetricCard, WorkspaceFrame, cn } from "./academy-ui";
+import {
+  Badge,
+  EmptyState,
+  MetricCard,
+  MetricCardSkeleton,
+  RowSkeleton,
+  Spinner,
+  WorkspaceFrame,
+  cn,
+} from "./academy-ui";
 import { statusLabel, statusTone, useLabStatusMap, type RuntimeState } from "./lab-status";
 import { useLearningProgress } from "./progress";
 
@@ -71,6 +80,13 @@ export function LabsDirectoryPage() {
     const queryMatch = `${challenge.title} ${challenge.summary} ${challenge.category}`.toLowerCase().includes(query.toLowerCase());
     return categoryMatch && difficultyMatch && queryMatch;
   });
+  const hasActiveFilters = category !== "All" || difficulty !== "All" || query.trim() !== "";
+
+  function clearFilters() {
+    setCategory("All");
+    setDifficulty("All");
+    setQuery("");
+  }
 
   return (
     <WorkspaceFrame
@@ -108,17 +124,31 @@ export function LabsDirectoryPage() {
           <FilterSelect label="Category" value={category} onChange={setCategory} options={categories} />
           <FilterSelect label="Difficulty" value={difficulty} onChange={setDifficulty} options={difficulties} />
         </div>
+        <p className="mt-4 text-xs text-slate-400" aria-live="polite">
+          Showing {filteredLabs.length} of {challenges.length} labs
+          {hasActiveFilters ? " (filtered)" : ""}
+        </p>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {filteredLabs.map((challenge) => {
-          const status = statuses[challenge.id] ?? "checking";
-          const isSolved = completedSet.has(challenge.id);
-          return (
-            <LabCard key={challenge.id} challenge={challenge} status={status} isSolved={isSolved} />
-          );
-        })}
-      </section>
+      {filteredLabs.length ? (
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filteredLabs.map((challenge) => {
+            const status = statuses[challenge.id] ?? "checking";
+            const isSolved = completedSet.has(challenge.id);
+            return (
+              <LabCard key={challenge.id} challenge={challenge} status={status} isSolved={isSolved} />
+            );
+          })}
+        </section>
+      ) : (
+        <EmptyState
+          icon={Search}
+          title="No labs match those filters"
+          body="Try a different keyword, or widen the category and difficulty filters to see the full catalog again."
+          actionLabel="Clear filters"
+          onAction={clearFilters}
+        />
+      )}
     </WorkspaceFrame>
   );
 }
@@ -238,7 +268,7 @@ export function TeachingPage() {
       body="Start from zero, learn the concept in simple language, practice only inside local Docker labs, capture the flag, then write the root cause and fix."
       showGuide={student?.role === "instructor"}
     >
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <MetricCard label="Foundation lessons" value={`${foundationCount}`} helper="Start from 0 modules" icon={BookOpen} />
         <MetricCard label="Lab-linked lessons" value={`${linkedLabCount}`} helper="Web and API practicals" icon={FlaskConical} />
         <MetricCard label="Progress" value={`${progress.completed.length}/${challenges.length}`} helper="Flags solved after learning" icon={Trophy} />
@@ -256,7 +286,7 @@ export function TeachingPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         {teachingFlow.map((step, index) => (
           <article key={step} className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-300/10 text-sm font-semibold text-cyan-100">
@@ -421,11 +451,13 @@ export function ProgressPage() {
     accuracy,
     earnedPoints,
     progress,
+    progressMode,
     student,
     totalPoints,
     completion,
   } = useLearningProgress(challenges);
   const completedSet = new Set(progress.completed);
+  const isLoadingProgress = progressMode === "loading";
 
   return (
     <WorkspaceFrame
@@ -435,11 +467,22 @@ export function ProgressPage() {
       body="Review solved labs, attempts, score, accuracy, and remaining modules from one focused page."
       showGuide={student?.role === "instructor"}
     >
-      <section className="grid gap-4 md:grid-cols-4">
-        <MetricCard label="Completion" value={`${completion}%`} helper={`${progress.completed.length}/${challenges.length} labs solved`} icon={Trophy} />
-        <MetricCard label="Points" value={`${earnedPoints}/${totalPoints}`} helper="Score from solved labs" icon={Flag} />
-        <MetricCard label="Accuracy" value={`${accuracy}%`} helper={`${progress.attempts.length} submissions`} icon={Target} />
-        <MetricCard label="Remaining" value={`${challenges.length - progress.completed.length}`} helper="Labs left to solve" icon={Clock3} />
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        {isLoadingProgress ? (
+          <>
+            <MetricCardSkeleton icon={Trophy} />
+            <MetricCardSkeleton icon={Flag} />
+            <MetricCardSkeleton icon={Target} />
+            <MetricCardSkeleton icon={Clock3} />
+          </>
+        ) : (
+          <>
+            <MetricCard label="Completion" value={`${completion}%`} helper={`${progress.completed.length}/${challenges.length} labs solved`} icon={Trophy} />
+            <MetricCard label="Points" value={`${earnedPoints}/${totalPoints}`} helper="Score from solved labs" icon={Flag} />
+            <MetricCard label="Accuracy" value={`${accuracy}%`} helper={`${progress.attempts.length} submissions`} icon={Target} />
+            <MetricCard label="Remaining" value={`${challenges.length - progress.completed.length}`} helper="Labs left to solve" icon={Clock3} />
+          </>
+        )}
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
@@ -469,26 +512,32 @@ export function ProgressPage() {
             <h2 className="text-xl font-semibold text-white">Attempt history</h2>
           </div>
           <div className="mt-4 space-y-3">
-            {progress.attempts.length ? (
+            {isLoadingProgress ? (
+              <RowSkeleton count={4} />
+            ) : progress.attempts.length ? (
               progress.attempts.slice(0, 12).map((attempt) => {
                 const challenge = challenges.find((item) => item.id === attempt.challengeId);
                 return (
                   <div key={attempt.id} className="rounded-md border border-white/10 bg-slate-950/70 p-3">
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{challenge?.title ?? attempt.challengeId}</p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">{challenge?.title ?? attempt.challengeId}</p>
                         <p className="mt-1 text-xs text-slate-400">{new Date(attempt.submittedAt).toLocaleString()}</p>
                       </div>
                       <Badge tone={attempt.correct ? "green" : "red"}>{attempt.correct ? "Accepted" : "Retry"}</Badge>
                     </div>
-                    <p className="mt-2 text-xs text-slate-400">Submitted: {attempt.flagPreview}</p>
+                    <p className="mt-2 break-all text-xs text-slate-400">Submitted: {attempt.flagPreview}</p>
                   </div>
                 );
               })
             ) : (
-              <div className="rounded-lg border border-dashed border-white/15 p-5 text-sm leading-6 text-slate-400">
-                No attempts yet. Submit a flag from any lab to start building history.
-              </div>
+              <EmptyState
+                icon={Flag}
+                title="No attempts yet"
+                body="Every flag you submit is recorded here with its result, so you can show your working during evaluation."
+                actionLabel="Open a lab"
+                actionHref="/labs"
+              />
             )}
           </div>
         </article>
@@ -529,14 +578,29 @@ export function NotesPage() {
             <NotebookPen className="h-5 w-5 text-cyan-200" aria-hidden="true" />
             Practice notes
           </label>
-          <textarea
-            id="student-notes"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            placeholder="Example: SQLi lab worked because raw username and password were joined into the query..."
-            className="mt-4 min-h-[420px] w-full resize-y rounded-md border border-white/10 bg-slate-950 p-4 text-sm leading-7 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300"
-          />
-          <p className="mt-3 text-xs text-slate-400">Notes are saved in this browser for your local practice session.</p>
+          {loaded ? (
+            <textarea
+              id="student-notes"
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="Example: SQLi lab worked because raw username and password were joined into the query..."
+              className="mt-4 min-h-[320px] w-full resize-y rounded-md border border-white/10 bg-slate-950 p-4 text-sm leading-7 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300 md:min-h-[420px]"
+            />
+          ) : (
+            <div className="mt-4 flex min-h-[320px] items-center justify-center rounded-md border border-white/10 bg-slate-950 md:min-h-[420px]">
+              <Spinner />
+            </div>
+          )}
+          <p className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+            {loaded && notes.trim() ? (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
+                {`${notes.trim().split(/\s+/).length} words saved in this browser`}
+              </>
+            ) : (
+              "Notes are saved in this browser for your local practice session."
+            )}
+          </p>
         </article>
 
         <aside className="space-y-4">
