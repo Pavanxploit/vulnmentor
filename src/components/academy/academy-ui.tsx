@@ -10,11 +10,13 @@ export const sidebarItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Roadmap", href: "/roadmap", icon: Map },
   { label: "Teaching", href: "/teaching", icon: GraduationCap },
+  { label: "Instructor lessons", href: "/courses", icon: BookOpen },
   { label: "Learning Paths", href: "/learning-paths", icon: Route },
   { label: "Labs", href: "/labs", icon: FlaskConical },
   { label: "Progress", href: "/progress", icon: Trophy },
   { label: "Guide Console", href: "/guide", icon: ClipboardCheck, guideOnly: true },
   { label: "Notes", href: "/notes", icon: NotebookPen },
+  { label: "Status", href: "/status", icon: Activity },
   { label: "Settings", href: "/settings", icon: Settings },
 ] as const;
 

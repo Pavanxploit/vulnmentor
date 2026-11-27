@@ -7,6 +7,12 @@ VulnMentor has two parts:
 
 These two parts do not have to be hosted in the same place.
 
+## Public student demo
+
+The published [Defender Mode demo](https://pavan-vulnmentor-demo.humbleflea128.chatgpt.site) serves only the contents of `public/demo`. To host that frontend on Vercel, import the repository and select `public/demo` as its root directory. For Netlify, the root `netlify.toml` selects the same publish directory. Guest progress lasts for the current page visit.
+
+The full portal uses Pino request logs with an `x-request-id` response header. Set `SENTRY_DSN` to enable server error reporting. Set server-side `OPENAI_API_KEY` and optionally `VULNMENTOR_MENTOR_MODEL` for model-assisted selection of authored coaching prompts. The selector receives the lab title and activity counts. Provider errors fall back to local coaching. The limiter is per-process.
+
 ## Recommended Model For College Demo
 
 ```text

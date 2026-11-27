@@ -12,6 +12,9 @@ import { formatLastChecked, statusLabel, statusTone, useLabStatus } from "./lab-
 import { useLearningProgress } from "./progress";
 import type { EvidenceNotebookRecord, ProgressState } from "@/lib/progress-types";
 
+import { ResponsePatch } from "./response-patch";
+import { summarizeLab } from "@/lib/learner-analytics";
+
 type VerifyFlagResponse = {
   ok: boolean;
   correct?: boolean;
@@ -33,6 +36,20 @@ type EvidenceForm = {
 type ReportFormat = "markdown" | "json" | "csv";
 
 export function LabDetailPage({ challenge }: { challenge: Challenge }) {
+  const [mentorMessage, setMentorMessage] = useState("");
+  const [askingMentor, setAskingMentor] = useState(false);
+  async function askMentor() {
+    setAskingMentor(true);
+    try {
+      const response = await fetch("/api/mentor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ labId: challenge.id }) });
+      const result = await response.json();
+      setMentorMessage(result.message);
+    } catch {
+      setMentorMessage("The mentor is unavailable. Try a lesson hint.");
+    } finally {
+      setAskingMentor(false);
+    }
+  }
   const [hintCount, setHintCount] = useState(0);
   const [flagValue, setFlagValue] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -45,6 +62,7 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
   const [generatingReport, setGeneratingReport] = useState<ReportFormat | null>(null);
   const { status, detail: statusDetail, lastChecked, refresh } = useLabStatus(challenge.lab);
   const { progress, student, applyProgress } = useLearningProgress(challenges);
+  const activity = summarizeLab(progress, challenge.id);
   const isSolved = progress.completed.includes(challenge.id);
   const teachingModule = getTeachingModule(challenge.id);
   const teachingLesson = getTeachingLesson(challenge.teaching.lessonSlug);
@@ -529,6 +547,11 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                     {submitting ? "Checking..." : "Submit Flag"}
                   </button>
                 </form>
+                {activity.needsReview && (
+                  <p className="mt-4 text-sm text-cyan-200">
+                    Five recent submissions missed. <Link className="underline" href={`/teaching/${challenge.teaching.lessonSlug}`}>Review the prerequisite lesson</Link> or reveal the next hint.
+                  </p>
+                )}
                 {feedback ? (
                   <p className="mt-4 rounded-lg border border-white/10 bg-slate-950/70 p-3 text-sm leading-6 text-slate-200">{feedback}</p>
                 ) : null}
@@ -540,12 +563,19 @@ export function LabDetailPage({ challenge }: { challenge: Challenge }) {
                 {isSolved ? (
                   <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-300/25 bg-emerald-300/10 p-3 text-sm font-semibold text-emerald-100">
                     <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                    Completed
+                    Completed · <a className="underline" href="/demo/index.html">Practice in Defender Mode</a>
                   </div>
                 ) : null}
               </article>
             </section>
 
+            <section className="rounded-lg border border-white/10 p-5">
+              <h2 className="text-xl font-semibold">Lab mentor</h2>
+              <button type="button" disabled={askingMentor} onClick={askMentor} className="my-3 rounded bg-cyan-100 px-4 py-2 text-slate-950">
+                {askingMentor ? "Thinking…" : isSolved ? "Explain the fix" : "Suggest my next step"}
+              </button><p role="status">{mentorMessage}</p>
+            </section>
+            {isSolved && challenge.id === "api-excessive-data-exposure" && <ResponsePatch />}
             <SecureComparisonSection challenge={challenge} />
 
             <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">

@@ -1,0 +1,46 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  portal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: mentor
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: vulnmentor
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run validate
+      - run: npm run test:coverage
+      - run: node scripts/coverage-badge.mjs --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Initialize PostgreSQL and exercise the same learner flows
+        env:
+          DATABASE_URL: postgres://mentor:ci-only@localhost:5432/vulnmentor
+          VM_E2E_PROVIDER: postgres
+        run: |
+          npm run migrate:postgres -- --init
+          npm run test:e2e

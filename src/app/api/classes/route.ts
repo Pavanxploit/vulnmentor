@@ -25,14 +25,14 @@ export async function GET(request: NextRequest) {
       ok: true,
       role: "instructor",
       status,
-      classes: listClassesForInstructor(student.id, status),
+      classes: await listClassesForInstructor(student.id, status),
     });
   }
 
   return NextResponse.json({
     ok: true,
     role: "student",
-    classes: listClassesForStudent(student.id),
+    classes: await listClassesForStudent(student.id),
   });
 }
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const created = createClass({
+    const created = await createClass({
       instructorId: guard.session.student.id,
       name,
       description: readString(body, "description"),
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       message: `Created "${created.name}". Share join code ${created.joinCode}.`,
-      classes: listClassesForInstructor(guard.session.student.id, "active"),
+      classes: await listClassesForInstructor(guard.session.student.id, "active"),
     });
   } catch (error) {
     return NextResponse.json(

@@ -44,6 +44,8 @@ import {
 import { statusLabel, statusTone, useLabStatusMap, type RuntimeState } from "./lab-status";
 import { useLearningProgress } from "./progress";
 
+import { studyStreak, summarizeLab } from "@/lib/learner-analytics";
+
 const notesStorageKey = "vulnmentor-student-notes-v1";
 
 const learningPaths = [
@@ -484,6 +486,30 @@ export function ProgressPage() {
           </>
         )}
       </section>
+
+      {student && <section className="space-y-2 rounded-lg border border-white/10 p-5">
+        <h2 className="text-xl font-semibold">Learning profile · {student.name}</h2>
+        <p>{studyStreak(progress)}-day study streak across recorded UTC activity days.</p>
+        <p>Badges earned · {[progress.completed.length > 0 && "First solve", progress.evidenceNotebooks.length > 0 && "Evidence collector",
+          challenges.every(c=>completedSet.has(c.id)) && "Core curriculum complete"].filter(Boolean).join(" · ") || "Complete a lab or save evidence to earn your first badge."}</p>
+        <Link className="text-cyan-200 underline" href="/leaderboard">View track and lab rankings</Link>
+      </section>}
+      {student && challenges.every((lab) => completedSet.has(lab.id)) && (
+        <a href="/api/certificate" className="rounded-md bg-emerald-200 p-3 font-semibold text-slate-950">Download your completion certificate (PDF)</a>
+      )}
+      {!isLoadingProgress && (
+        <section className="rounded-lg border border-white/10 p-5">
+          <h2 className="text-xl font-semibold">Lab activity</h2>
+          <p className="my-3 text-sm text-slate-400">Elapsed minutes span the earliest recorded hint or submission to the first recorded solve in your retained history.</p>
+          <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr>
+            {["Lab", "Attempts", "Hint levels viewed", "Elapsed minutes"].map((label) => <th className="p-2" key={label}>{label}</th>)}
+          </tr></thead><tbody>{challenges.map((challenge) => {
+            const stats = summarizeLab(progress, challenge.id);
+            return <tr className="border-t border-white/10" key={challenge.id}><th scope="row" className="p-2">{challenge.title}</th>
+              <td className="p-2">{stats.attempts}</td><td className="p-2">{stats.hints}</td><td className="p-2">{stats.observedMinutes ?? "—"}</td></tr>;
+          })}</tbody></table></div>
+        </section>
+      )}
 
       <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
         <article className="rounded-lg border border-white/10 bg-white/[0.04] p-5">

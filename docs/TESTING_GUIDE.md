@@ -1,3 +1,11 @@
+# Automated checks
+
+Use Node 24. After `npm ci`, run `npm run lint`, `npm run validate`, `npm run test:coverage`, `npm run build`, `npx playwright install chromium`, and `npm run test:e2e`. Set `BROWSER_EXECUTABLE` to use an existing Chromium binary. The browser tests start their own production server on port 3199.
+
+Vitest measures lines across all API routes and server library files. The badge excludes browser coverage. Regenerate the badge after a coverage change with `node scripts/coverage-badge.mjs`. GitHub Actions checks its value and publishes the HTML report as an artifact.
+
+Use `VM_E2E_PROVIDER=postgres` and `DATABASE_URL` pointing to a dedicated test database initialized with `npm run migrate:postgres -- --init` to run the browser suite on PostgreSQL. Each run creates synthetic accounts and lessons.
+
 # Testing Guide
 
 Use this guide after each build step.

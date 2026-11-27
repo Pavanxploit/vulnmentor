@@ -146,3 +146,32 @@ CREATE INDEX IF NOT EXISTS idx_classes_instructor ON classes (instructor_id, sta
 -- "My Classes" looks up enrolments by student. The composite primary key
 -- already covers lookups that start from a class.
 CREATE INDEX IF NOT EXISTS idx_class_enrollments_user ON class_enrollments (user_id);
+
+CREATE TABLE IF NOT EXISTS courses (
+  id TEXT PRIMARY KEY, title TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS course_modules (
+  id TEXT PRIMARY KEY, course_id TEXT NOT NULL REFERENCES courses(id),
+  title TEXT NOT NULL, position INTEGER NOT NULL, UNIQUE(course_id, position)
+);
+CREATE TABLE IF NOT EXISTS lab_catalog (
+  id TEXT PRIMARY KEY
+);
+CREATE TABLE IF NOT EXISTS course_lessons (
+  id TEXT PRIMARY KEY, module_id TEXT NOT NULL REFERENCES course_modules(id),
+  title TEXT NOT NULL, body TEXT NOT NULL, lab_id TEXT REFERENCES lab_catalog(id),
+  author_id TEXT NOT NULL REFERENCES users(id), created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS learning_paths (
+  id TEXT PRIMARY KEY, title TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS path_courses (
+  path_id TEXT NOT NULL REFERENCES learning_paths(id), course_id TEXT NOT NULL REFERENCES courses(id),
+  position INTEGER NOT NULL, PRIMARY KEY(path_id, course_id), UNIQUE(path_id, position)
+);
+INSERT INTO courses(id,title) VALUES('academy','Web and API Security') ON CONFLICT DO NOTHING;
+INSERT INTO course_modules(id,course_id,title,position) VALUES
+  ('web','academy','Web security',1),('api','academy','API security',2),('defense','academy','Defender thinking',3) ON CONFLICT DO NOTHING;
+INSERT INTO learning_paths(id,title) VALUES('foundation','Security foundations') ON CONFLICT DO NOTHING;
+INSERT INTO path_courses(path_id,course_id,position) VALUES('foundation','academy',1) ON CONFLICT DO NOTHING;
+INSERT INTO lab_catalog(id) VALUES ('web-sqli-login'),('web-xss-comment'),('api-broken-auth'),('api-jwt-tampering'),('api-rate-limit-bypass'),('api-excessive-data-exposure') ON CONFLICT DO NOTHING;
