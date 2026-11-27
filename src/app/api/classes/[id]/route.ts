@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   if (guard.error) return guard.error;
 
   const { id } = await context.params;
-  const detail = getClassDetail(guard.session.student.id, id);
+  const detail = await getClassDetail(guard.session.student.id, id);
 
   if (!detail) {
     return NextResponse.json({ ok: false, message: "Class not found." }, { status: 404 });
@@ -44,20 +44,20 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
   if (action === "archive" || action === "restore") {
     const status = action === "archive" ? "archived" : "active";
-    if (!setClassStatus(instructorId, id, status)) {
+    if (!await setClassStatus(instructorId, id, status)) {
       return NextResponse.json({ ok: false, message: "Class not found." }, { status: 404 });
     }
 
     return NextResponse.json({
       ok: true,
       message: action === "archive" ? "Class archived. Its data is kept." : "Class restored.",
-      classes: listClassesForInstructor(instructorId, "active"),
-      archived: listClassesForInstructor(instructorId, "archived"),
+      classes: await listClassesForInstructor(instructorId, "active"),
+      archived: await listClassesForInstructor(instructorId, "archived"),
     });
   }
 
   if (action === "regenerate-code") {
-    const joinCode = regenerateJoinCode(instructorId, id);
+    const joinCode = await regenerateJoinCode(instructorId, id);
     if (!joinCode) {
       return NextResponse.json({ ok: false, message: "Class not found." }, { status: 404 });
     }
@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       ok: true,
       joinCode,
       message: `New join code: ${joinCode}. The previous code no longer works.`,
-      classes: listClassesForInstructor(instructorId, "active"),
+      classes: await listClassesForInstructor(instructorId, "active"),
     });
   }
 

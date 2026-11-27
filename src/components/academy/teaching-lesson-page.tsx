@@ -29,6 +29,15 @@ type TeachingLessonPageProps = {
   nextLesson?: TeachingLesson;
 };
 
+const furtherReading: Record<string, [string,string]> = {
+  "sql-injection": ["SQL injection prevention","SQL_Injection_Prevention_Cheat_Sheet"],
+  "stored-xss": ["Cross-site scripting prevention","Cross_Site_Scripting_Prevention_Cheat_Sheet"],
+  "api-bola": ["Authorization","Authorization_Cheat_Sheet"],
+  "jwt-tampering": ["Token validation","REST_Security_Cheat_Sheet"],
+  "rate-limit-bypass": ["Authentication controls","Authentication_Cheat_Sheet"],
+  "excessive-data-exposure": ["Web service security","Web_Service_Security_Cheat_Sheet"],
+};
+
 const lessonAnchors = [
   { id: "what", label: "What" },
   { id: "why", label: "Why" },
@@ -219,6 +228,14 @@ export function TeachingLessonPage({ lesson, nextLesson }: TeachingLessonPagePro
             <TeachingList title="Common Mistakes" items={lesson.commonMistakes} icon={ShieldAlert} tone="red" />
           </section>
 
+          {furtherReading[lesson.slug] && <section className="rounded-lg border border-white/10 p-5">
+            <h2 className="mb-3 text-xl font-semibold">Defensive walkthrough</h2>
+            <video className="w-full" controls preload="none" aria-label={lesson.title + " walkthrough"} src={`/walkthroughs/${lesson.slug}.webm`}>
+              <track default kind="captions" srcLang="en" label="English" src={`/walkthroughs/${lesson.slug}.vtt`} />
+            </video>
+            <details className="my-3"><summary>Read transcript</summary><p>{lesson.title} — Lesson overview. {lesson.mitigation[0]} Check your understanding in the lesson quiz.</p></details>
+            <a className="text-cyan-200 underline" href={`https://cheatsheetseries.owasp.org/cheatsheets/${furtherReading[lesson.slug][1]}.html`}>OWASP · {furtherReading[lesson.slug][0]}</a>
+          </section>}
           <section id="fix" className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-emerald-200" aria-hidden="true" />

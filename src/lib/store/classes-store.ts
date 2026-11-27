@@ -1,11 +1,11 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { challenges } from "@/data/challenges";
-import { getDatabase } from "./sqlite-store";
+import { relationalStatement } from "./relational";
 
 /**
  * Class and batch management.
  *
- * SQLite only. The JSON store remains a demo fallback, and duplicating
+ * SQLite and PostgreSQL. The JSON store remains a demo fallback, and duplicating
  * relational joins into a flat file would cost more than it is worth for a
  * feature aimed at real classroom use. Callers check `classesAvailable()` and
  * surface a clear message rather than failing obscurely.
@@ -63,22 +63,21 @@ export function classesAvailable() {
   return (process.env.VULNMENTOR_DATABASE_PROVIDER ?? "sqlite") !== "json";
 }
 
-export function createClass(input: { instructorId: string; name: string; description?: string }) {
+export async function createClass(input: { instructorId: string; name: string; description?: string }) {
   const name = input.name.trim().slice(0, 120);
   if (!name) throw new Error("Class name is required.");
 
-  const db = getDatabase();
   const now = new Date().toISOString();
   const record = {
     id: randomUUID(),
     name,
     description: (input.description ?? "").trim().slice(0, 400),
-    joinCode: generateUniqueJoinCode(),
+    joinCode: await generateUniqueJoinCode(),
     status: "active" as const,
     createdAt: now,
   };
 
-  db.prepare(
+  await relationalStatement(
     `INSERT INTO classes (id, name, description, join_code, instructor_id, status, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
   ).run(
@@ -94,13 +93,11 @@ export function createClass(input: { instructorId: string; name: string; descrip
   return record;
 }
 
-export function listClassesForInstructor(instructorId: string, status: ClassStatus) {
-  const db = getDatabase();
+export async function listClassesForInstructor(instructorId: string, status: ClassStatus) {
 
   // One aggregate rather than a query per class: a class overview should not
   // scale its cost with the number of classes an instructor runs.
-  const rows = db
-    .prepare(
+  const rows = await relationalStatement(
       `SELECT
          c.id, c.name, c.description, c.join_code, c.status, c.created_at,
          COUNT(DISTINCT e.user_id) AS student_count,
@@ -119,11 +116,9 @@ export function listClassesForInstructor(instructorId: string, status: ClassStat
   return rows.map(toClassSummary);
 }
 
-export function getClassDetail(instructorId: string, classId: string): ClassDetail | null {
-  const db = getDatabase();
+export async function getClassDetail(instructorId: string, classId: string): Promise<ClassDetail | null> {
 
-  const summary = db
-    .prepare(
+  const summary = await relationalStatement(
       `SELECT
          c.id, c.name, c.description, c.join_code, c.status, c.created_at,
          COUNT(DISTINCT e.user_id) AS student_count,
@@ -140,8 +135,7 @@ export function getClassDetail(instructorId: string, classId: string): ClassDeta
 
   if (!summary) return null;
 
-  const students = db
-    .prepare(
+  const students = await relationalStatement(
       `SELECT
          u.id, u.name, u.email, u.usn, u.last_seen_at, e.joined_at,
          (SELECT COUNT(*) FROM completed_labs cl WHERE cl.user_id = u.id) AS completed_labs,
@@ -150,7 +144,7 @@ export function getClassDetail(instructorId: string, classId: string): ClassDeta
        FROM class_enrollments e
        JOIN users u ON u.id = e.user_id
        WHERE e.class_id = ?
-       ORDER BY u.name COLLATE NOCASE`,
+       ORDER BY lower(u.name)`,
     )
     .all(classId) as ClassStudentAggregateRow[];
 
@@ -170,11 +164,9 @@ export function getClassDetail(instructorId: string, classId: string): ClassDeta
   };
 }
 
-export function listClassesForStudent(userId: string): StudentClassRow[] {
-  const db = getDatabase();
+export async function listClassesForStudent(userId: string): Promise<StudentClassRow[]> {
 
-  const rows = db
-    .prepare(
+  const rows = await relationalStatement(
       `SELECT c.id, c.name, c.description, c.status, e.joined_at, i.name AS instructor_name
        FROM class_enrollments e
        JOIN classes c ON c.id = e.class_id
@@ -205,12 +197,10 @@ export type JoinResult =
   | { ok: true; className: string }
   | { ok: false; reason: "not-found" | "archived" | "already-enrolled"; message: string };
 
-export function joinClassByCode(userId: string, rawCode: string): JoinResult {
-  const db = getDatabase();
+export async function joinClassByCode(userId: string, rawCode: string): Promise<JoinResult> {
   const code = normalizeJoinCode(rawCode);
 
-  const found = db
-    .prepare("SELECT id, name, status FROM classes WHERE join_code = ?")
+  const found = await relationalStatement("SELECT id, name, status FROM classes WHERE join_code = ?")
     .get(code) as { id: string; name: string; status: ClassStatus } | undefined;
 
   if (!found) {
@@ -229,23 +219,14 @@ export function joinClassByCode(userId: string, rawCode: string): JoinResult {
     };
   }
 
-  const already = db
-    .prepare("SELECT 1 AS present FROM class_enrollments WHERE class_id = ? AND user_id = ?")
-    .get(found.id, userId);
-
-  if (already) {
-    return {
-      ok: false,
-      reason: "already-enrolled",
-      message: `You are already enrolled in "${found.name}".`,
-    };
+  const inserted = await relationalStatement(
+    "INSERT INTO class_enrollments (class_id,user_id,joined_at) SELECT id,?,? FROM classes WHERE id=? AND status='active' AND join_code=? ON CONFLICT(class_id,user_id) DO NOTHING"
+  ).run(userId,new Date().toISOString(),found.id,code);
+  if (!inserted.changes) {
+    const existing = await relationalStatement("SELECT 1 FROM class_enrollments WHERE class_id=? AND user_id=?").get(found.id,userId);
+    return existing ? {ok:false,reason:"already-enrolled",message:"You are already enrolled in this class."}
+      : {ok:false,reason:"not-found",message:"This join code is no longer active."};
   }
-
-  db.prepare("INSERT INTO class_enrollments (class_id, user_id, joined_at) VALUES (?, ?, ?)").run(
-    found.id,
-    userId,
-    new Date().toISOString(),
-  );
 
   return { ok: true, className: found.name };
 }
@@ -254,32 +235,29 @@ export function joinClassByCode(userId: string, rawCode: string): JoinResult {
  * Every instructor mutation is scoped by instructor_id in the WHERE clause, so
  * one instructor cannot act on another's class even with a valid class id.
  */
-export function setClassStatus(instructorId: string, classId: string, status: ClassStatus) {
-  const changes = getDatabase()
-    .prepare("UPDATE classes SET status = ? WHERE id = ? AND instructor_id = ?")
-    .run(status, classId, instructorId).changes;
+export async function setClassStatus(instructorId: string, classId: string, status: ClassStatus) {
+  const { changes } = await relationalStatement("UPDATE classes SET status = ? WHERE id = ? AND instructor_id = ?")
+    .run(status, classId, instructorId);
 
   return changes > 0;
 }
 
-export function regenerateJoinCode(instructorId: string, classId: string) {
-  const joinCode = generateUniqueJoinCode();
-  const changes = getDatabase()
-    .prepare("UPDATE classes SET join_code = ? WHERE id = ? AND instructor_id = ?")
-    .run(joinCode, classId, instructorId).changes;
+export async function regenerateJoinCode(instructorId: string, classId: string) {
+  const joinCode = await generateUniqueJoinCode();
+  const { changes } = await relationalStatement("UPDATE classes SET join_code = ? WHERE id = ? AND instructor_id = ?")
+    .run(joinCode, classId, instructorId);
 
   return changes > 0 ? joinCode : null;
 }
 
 /** Deletes the enrolment row only. The account and all progress rows survive. */
-export function removeStudentFromClass(instructorId: string, classId: string, studentId: string) {
-  const changes = getDatabase()
-    .prepare(
+export async function removeStudentFromClass(instructorId: string, classId: string, studentId: string) {
+  const { changes } = await relationalStatement(
       `DELETE FROM class_enrollments
        WHERE class_id = ? AND user_id = ?
          AND class_id IN (SELECT id FROM classes WHERE instructor_id = ?)`,
     )
-    .run(classId, studentId, instructorId).changes;
+    .run(classId, studentId, instructorId);
 
   return changes > 0;
 }
@@ -288,16 +266,15 @@ export function normalizeJoinCode(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, "").slice(0, 12);
 }
 
-function generateUniqueJoinCode() {
-  const db = getDatabase();
-  const exists = db.prepare("SELECT 1 AS present FROM classes WHERE join_code = ?");
+async function generateUniqueJoinCode() {
+  const exists = relationalStatement("SELECT 1 AS present FROM classes WHERE join_code = ?");
 
   for (let attempt = 0; attempt < maxJoinCodeAttempts; attempt += 1) {
     let code = "";
     for (let index = 0; index < joinCodeLength; index += 1) {
       code += joinCodeAlphabet[randomInt(joinCodeAlphabet.length)];
     }
-    if (!exists.get(code)) return code;
+    if (!await exists.get(code)) return code;
   }
 
   // The unique index is the real guarantee; this only means the random space

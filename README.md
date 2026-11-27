@@ -1,28 +1,43 @@
 # VulnMentor
 
-VulnMentor is an AI-guided Web and API security CTF sandbox for students. The goal is to help learners practice vulnerabilities safely, capture flags, understand root causes, compare vulnerable and secure code, and learn defensive thinking through logs and mitigation notes.
+[![CI](https://github.com/Pavanxploit/vulnmentor/actions/workflows/ci.yml/badge.svg)](https://github.com/Pavanxploit/vulnmentor/actions/workflows/ci.yml)
+[![API and library line coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FPavanxploit%2Fvulnmentor%2Fmain%2Fdocs%2Fcoverage.json)](docs/TESTING_GUIDE.md)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+![Next.js and TypeScript](https://img.shields.io/badge/stack-Next.js%20%2B%20TypeScript-223344)
+[![Educational use](https://img.shields.io/badge/use-educational-teal)](SAFETY.md)
 
-This repository is intentionally educational. Labs must run only in the controlled local sandbox.
+VulnMentor is a security classroom for students and instructors. Students investigate local Web and API labs, submit evidence and flags, compare secure implementations, and track what they learned. Instructors publish lessons, manage classes, and review attempts.
 
-## Project Highlights
+**[Try the public student demo](https://pavan-vulnmentor-demo.humbleflea128.chatgpt.site)** · Open a case, identify the relevant log entry, then select a remediation. Guest access is automatic. The public frontend uses sample data and keeps this visit’s answers in memory. Account sign-in, persistence and Docker labs run in the full portal.
 
-- Web + API security labs mapped to OWASP concepts
-- Teaching Hub with foundation lessons, guided vulnerability lessons, quizzes, evidence checklists, and report notes
-- Roadmap page from beginner web basics to Web, API, and defender thinking
-- CTF-style flag workflow with local progress tracking
-- Vulnerable and secure comparison views
-- Dockerized localhost lab targets
-- Guarded offline AI Mentor for safe learning guidance
-- Evidence notebook and Markdown/JSON/CSV report generator
-- Instructor guide console, analytics, hint usage, and JSON/CSV export
-- Database migration plan for JSON, SQLite, PostgreSQL, or Supabase
-- Public-safe documentation for college demos and portfolio review
+## Walk through the portal
 
-## Screenshots
+![36-second walkthrough of sign-in, dashboard, lab, code comparison, accepted flag and saved progress](public/demo/tour/learner-flow.gif)
 
-![VulnMentor academy homepage](./screenshots/01-portal-overview.png)
+The walkthrough follows a demo student from sign-in to a saved solve. The screenshots below include captions explaining each step.
 
-![VulnMentor academy dashboard](./screenshots/02-report-dashboard.png)
+| Student workspace | Lab brief |
+| --- | --- |
+| ![Dashboard with the learner’s current progress](public/demo/tour/dashboard.webp) | ![Lab brief with the scenario and learning objective](public/demo/tour/lab.webp) |
+| **Implementation comparison** | **Progress report** |
+| ![Comparison showing which response fields each implementation returns](public/demo/tour/comparison.webp) | ![Progress report after an accepted submission](public/demo/tour/progress.webp) |
+| **Teaching Hub** | **Instructor console** |
+| ![Teaching Hub with foundation and security tracks](public/demo/tour/teaching.webp) | ![Instructor console with classroom activity](public/demo/tour/guide.webp) |
+
+![Roadmap connecting foundation lessons and defensive review](public/demo/tour/roadmap.webp)
+
+## Reviewer guide
+
+| Feature | Where to look |
+| --- | --- |
+| Six synthetic defensive cases | Public demo or `/demo/index.html` |
+| Six local Web and API labs | `/labs` |
+| Server-verified completions, elapsed time and hint usage | `/progress` |
+| Course authoring and student access | `/courses` |
+| Guarded coaching and a post-solve response patch | The Excessive Data Exposure lab |
+| Track rankings and completion certificate | `/leaderboard` and `/progress` |
+| Runtime health | `/status` |
+| Captioned defensive walkthroughs and further reading | Each of the six linked teaching lessons |
 
 ## Current Build
 
@@ -82,12 +97,12 @@ VulnMentor Portal
 Docker Labs on 127.0.0.1:4010 through 127.0.0.1:4060
 ```
 
-For now, both the portal and the lab are designed to run locally on the learner's laptop. Later, the portal can be hosted, but the vulnerable labs should still run locally or inside a controlled cyber range/VM.
+The full classroom portal runs beside the local lab services. The public demo is a separate static frontend.
 
 ## Run The Portal
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 

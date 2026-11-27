@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { postgresStore } from "./store/postgres-store";
 import { jsonStore } from "./store/json-store";
 import { sqliteDatabaseExists, sqliteStore } from "./store/sqlite-store";
 import {
@@ -98,6 +99,7 @@ export function getDatabaseAdapterStatus(): DatabaseAdapterStatus {
 function getAdapter(): ProgressStoreAdapter {
   if (resolvedAdapter) return resolvedAdapter;
 
+  if (resolveProvider() === "postgres") return postgresStore;
   if (resolveProvider() === "json") {
     resolvedAdapter = jsonStore;
     return resolvedAdapter;
@@ -112,11 +114,12 @@ function resolveProvider(): DatabaseProvider {
   const configured = process.env.VULNMENTOR_DATABASE_PROVIDER;
 
   if (!configured || configured === "sqlite") return "sqlite";
+  if (configured === "postgres") return "postgres";
   if (configured === "json") return "json";
 
   throw new Error(
-    `VULNMENTOR_DATABASE_PROVIDER="${configured}" is not implemented. Use "sqlite" or "json". ` +
-      "Postgres and Supabase remain planned targets; see docs/DATABASE_PLAN.md.",
+    `VULNMENTOR_DATABASE_PROVIDER="${configured}" is not implemented. Use "sqlite", "postgres" or "json". ` +
+      "See the provider setup; see docs/DATABASE_PLAN.md.",
   );
 }
 

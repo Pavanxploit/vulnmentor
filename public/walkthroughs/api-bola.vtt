@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.000
+Broken API Authorization — Lesson overview.
+
+00:00:05.000 --> 00:00:12.000
+Check object ownership or permission before returning every object-level resource.
+
+00:00:12.000 --> 00:00:17.000
+Check your understanding in the lesson quiz.

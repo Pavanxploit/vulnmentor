@@ -207,6 +207,7 @@ export function GuideConsolePage() {
             onRetry={() => void loadAnalytics()}
           />
 
+          <Link className="text-cyan-200 underline" href="/courses">Author course lessons</Link>
           <ClassManagerPanel />
 
           <LabHealthPanel canRestart />

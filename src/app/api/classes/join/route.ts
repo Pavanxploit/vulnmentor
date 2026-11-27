@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, message: "Enter a join code." }, { status: 400 });
   }
 
-  const result = joinClassByCode(guard.session.student.id, code);
+  const result = await joinClassByCode(guard.session.student.id, code);
 
   if (!result.ok) {
     // Already-enrolled is a friendly outcome, not a failure: the student ends up
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         ok: false,
         reason: result.reason,
         message: result.message,
-        classes: listClassesForStudent(guard.session.student.id),
+        classes: await listClassesForStudent(guard.session.student.id),
       },
       { status },
     );
@@ -56,6 +56,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     message: `Joined "${result.className}".`,
-    classes: listClassesForStudent(guard.session.student.id),
+    classes: await listClassesForStudent(guard.session.student.id),
   });
 }

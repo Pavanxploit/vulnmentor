@@ -136,10 +136,18 @@ Retention is the one place SQLite keeps strictly more: the JSON store dropped a
 student's oldest attempts once they passed 100. Reads still return the same
 capped, newest-first list, so the API is unchanged.
 
+## PostgreSQL
+
+Use a dedicated PostgreSQL database and set `DATABASE_URL` in the server environment. Keep `VULNMENTOR_DATABASE_PROVIDER=sqlite` while the original installation is serving students.
+
+For a fresh database, run `npm run migrate:postgres -- --init`. To migrate existing SQLite records, pause classroom writes, run `npm run migrate:postgres`, then `npm run migrate:postgres -- --verify`. The importer opens the SQLite source read-only, copies in dependency order, and compares the fields in every copied row before committing. A conflict rolls back the transaction. Set `VULNMENTOR_DATA_DIR` to select an alternate SQLite directory.
+
+After verification, start the portal with `VULNMENTOR_DATABASE_PROVIDER=postgres` and the same `DATABASE_URL`. PostgreSQL stores portal accounts, sessions, progress, classroom data and authored lessons. The database operator owns PostgreSQL backups. Keep the SQLite copy at the cutover point. Returning to it after new PostgreSQL writes requires reconciling those writes.
+
 ## Remaining Upgrade Path
 
 1. SQLite for single-machine classroom use — done.
-2. PostgreSQL or Supabase for hosted classroom accounts.
+2. PostgreSQL for hosted classroom accounts — implemented.
 3. Move rate limiting out of process memory when the app runs multiple workers.
 4. Keep Docker labs local or inside a private cyber range.
 5. Never host intentionally vulnerable labs on a public unrestricted URL.

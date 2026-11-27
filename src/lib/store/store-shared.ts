@@ -108,7 +108,7 @@ export type ProgressStoreAdapter = {
   getInstructorAnalytics(): Promise<InstructorAnalytics>;
 };
 
-export const dataDir = path.join(process.cwd(), ".data");
+export const dataDir = process.env.VULNMENTOR_DATA_DIR || path.join(process.cwd(), ".data");
 export const jsonDatabasePath = path.join(dataDir, "vulnmentor-progress.json");
 export const sqliteDatabasePath = path.join(dataDir, "vulnmentor.sqlite");
 export const backupDir = path.join(dataDir, "backups");

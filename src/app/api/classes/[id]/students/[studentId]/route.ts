@@ -19,7 +19,7 @@ export async function DELETE(
   const { id, studentId } = await context.params;
   const instructorId = guard.session.student.id;
 
-  if (!removeStudentFromClass(instructorId, id, studentId)) {
+  if (!await removeStudentFromClass(instructorId, id, studentId)) {
     return NextResponse.json(
       { ok: false, message: "That student is not enrolled in this class." },
       { status: 404 },
@@ -29,6 +29,6 @@ export async function DELETE(
   return NextResponse.json({
     ok: true,
     message: "Student removed from the class. Their account and progress are unchanged.",
-    class: getClassDetail(instructorId, id),
+    class: await getClassDetail(instructorId, id),
   });
 }

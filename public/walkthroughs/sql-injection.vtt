@@ -1,0 +1,10 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.000
+Login Bypass With SQL Injection — Lesson overview.
+
+00:00:05.000 --> 00:00:12.000
+Use prepared statements with placeholders for every user-controlled value.
+
+00:00:12.000 --> 00:00:17.000
+Check your understanding in the lesson quiz.
